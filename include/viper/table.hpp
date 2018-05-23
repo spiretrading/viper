@@ -3,7 +3,6 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <string_view>
 #include <vector>
 #include "viper/column.hpp"
 #include "viper/conversions.hpp"
@@ -27,6 +26,17 @@ namespace viper {
       //! Returns the list of columns.
       const std::vector<column>& get_columns() const;
 
+      //! Appends a value to an SQL query string.
+      /*!
+        \param value The value to append.
+        \param column The index of the column to append.
+        \param query The query string to append the value to.
+      */
+      void append_value(const type& value, int column,
+        std::string& query) const;
+
+      //! Appends a column value to a query.
+
       //! Defines a column.
       /*!
         \param name The name of the column.
@@ -35,7 +45,7 @@ namespace viper {
         \return A new table containing the column.
       */
       template<typename G, typename S>
-      table add_column(std::string_view name,
+      table add_column(std::string name,
         std::function<G (const type& value)> getter,
         std::function<void (type& value, S column)> setter) const;
 
@@ -47,7 +57,7 @@ namespace viper {
         \return A new table containing the column.
       */
       template<typename G, typename S>
-      table add_column(std::string_view name, G getter, S setter) const;
+      table add_column(std::string name, G getter, S setter) const;
 
       //! Defines a column tied directly to a data member.
       /*!
@@ -56,7 +66,7 @@ namespace viper {
         \return A new table containing the column.
       */
       template<typename U>
-      table add_column(std::string_view name, U type::* member) const;
+      table add_column(std::string name, U type::* member) const;
 
     private:
       struct accessors {
@@ -90,7 +100,7 @@ namespace viper {
   //! Makes a getter function from a lambda.
   template<typename T, typename F>
   auto make_getter(F&& getter) {
-    return std::make_function(std::forward<F>(getter));
+    return make_function(std::forward<F>(getter));
   }
 
   //! Makes a setter function from a class method.
@@ -129,14 +139,20 @@ namespace viper {
   }
 
   template<typename T>
+  void table<T>::append_value(const type& value, int column,
+      std::string& query) const {
+    m_data->m_accessors[column].m_getter(value, query);
+  }
+
+  template<typename T>
   template<typename G, typename S>
-  table<T> table<T>::add_column(std::string_view name,
+  table<T> table<T>::add_column(std::string name,
       std::function<G (const type& value)> getter,
       std::function<void (type& value, S column)> setter) const {
     table<T> r;
     r.m_data->m_columns = m_data->m_columns;
     r.m_data->m_accessors = m_data->m_accessors;
-    r.m_data->m_columns.emplace_back(name, sql_type<G>::type);
+    r.m_data->m_columns.emplace_back(std::move(name), to_sql_type_v<G>);
     r.m_data->m_accessors.emplace_back(
       [=] (const type& value, std::string& columns) {
         convert_to_sql(getter(value), columns);
@@ -150,16 +166,16 @@ namespace viper {
 
   template<typename T>
   template<typename G, typename S>
-  table<T> table<T>::add_column(std::string_view name, G getter,
+  table<T> table<T>::add_column(std::string name, G getter,
       S setter) const {
-    return add_column(name, make_getter<T>(std::move(getter)),
+    return add_column(std::move(name), make_getter<T>(std::move(getter)),
       make_setter<T>(std::move(setter)));
   }
 
   template<typename T>
   template<typename U>
-  table<T> table<T>::add_column(std::string_view name, U T::* member) const {
-    return add_column(name,
+  table<T> table<T>::add_column(std::string name, U T::* member) const {
+    return add_column(std::move(name),
       [=] (const type& value) -> const U& {
         return value.*member;
       },

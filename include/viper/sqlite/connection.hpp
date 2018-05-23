@@ -1,10 +1,12 @@
 #ifndef VIPER_SQLITE_CONNECTION_HPP
 #define VIPER_SQLITE_CONNECTION_HPP
 #include <string>
-#include <string_view>
 #include <sqlite3.h>
 #include "viper/connect_exception.hpp"
-#include "viper/create_table.hpp"
+#include "viper/create_table_statement.hpp"
+#include "viper/execute_exception.hpp"
+#include "viper/insert_range_statement.hpp"
+#include "viper/select_statement.hpp"
 
 namespace viper {
 namespace sqlite3 {
@@ -17,7 +19,7 @@ namespace sqlite3 {
       /*!
         \param path The path to the database.
       */
-      connection(std::string_view path);
+      connection(std::string path);
 
       ~connection();
 
@@ -28,6 +30,20 @@ namespace sqlite3 {
       template<typename T>
       void execute(const create_table_statement<T>& s);
 
+      //! Executes an insert range statement.
+      /*!
+        \param s The statement to execute.
+      */
+      template<typename T, typename B, typename E>
+      void execute(const insert_range_statement<T, B, E>& s);
+
+      //! Executes a select statement.
+      /*!
+        \param s The statement to execute.
+      */
+      template<typename T, typename D>
+      void execute(const select_statement<T, D>& s);
+
       //! Opens a connection to the SQLite database.
       void open();
 
@@ -37,10 +53,12 @@ namespace sqlite3 {
     private:
       std::string m_path;
       ::sqlite3* m_handle;
+
+      static std::string get_name(sql_data_type type);
   };
 
-  inline connection::connection(std::string_view path)
-      : m_path(path),
+  inline connection::connection(std::string path)
+      : m_path(std::move(path)),
         m_handle(nullptr) {}
 
   inline connection::~connection() {
@@ -50,9 +68,109 @@ namespace sqlite3 {
   template<typename T>
   void connection::execute(const create_table_statement<T>& s) {
     std::string query = "CREATE TABLE ";
+    if(s.get_exists_flag()) {
+      query += "IF NOT EXISTS ";
+    }
     query += s.get_name() + '(';
-    for(auto& column : s.get_table().
-    query += ')';
+    auto prepend_comma = false;
+    for(auto& column : s.get_table().get_columns()) {
+      if(prepend_comma) {
+        query += ',';
+      }
+      prepend_comma = true;
+      query += column.m_name;
+      query += ' ';
+      query += get_name(column.m_type);
+    }
+    query += ");";
+    char* error;
+    auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
+      &error);
+    if(result != SQLITE_OK) {
+      ::sqlite3_free(error);
+      throw execute_exception(error);
+    }
+  }
+
+  template<typename T, typename B, typename E>
+  void connection::execute(const insert_range_statement<T, B, E>& s) {
+    if(s.get_begin() == s.get_end()) {
+      return;
+    }
+    std::string query = "INSERT INTO ";
+    query += s.get_into_table();
+    query += " (";
+    auto prepend_comma = false;
+    for(auto& column : s.get_table().get_columns()) {
+      if(prepend_comma) {
+        query += ',';
+      }
+      prepend_comma = true;
+      query += column.m_name;
+    }
+    query += ") VALUES ";
+    prepend_comma = false;
+    for(auto i = s.get_begin(); i != s.get_end(); ++i) {
+      if(prepend_comma) {
+        query += ',';
+      }
+      prepend_comma = true;
+      query += '(';
+      auto prepend_value_comma = false;
+      for(int j = 0; j < static_cast<int>(s.get_table().get_columns().size());
+          ++j) {
+        if(prepend_value_comma) {
+          query += ',';
+        }
+        prepend_value_comma = true;
+        s.get_table().append_value(*i, j, query);
+      }
+      query += ')';
+    }
+    query += ';';
+    char* error;
+    auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
+      &error);
+    if(result != SQLITE_OK) {
+      ::sqlite3_free(error);
+      throw execute_exception(error);
+    }
+  }
+
+  template<typename T, typename D>
+  void connection::execute(const select_statement<T, D>& s) {
+    std::string query = "SELECT ";
+    auto prepend_comma = false;
+    for(auto& column : s.get_result_table().get_columns()) {
+      if(prepend_comma) {
+        query += ',';
+      }
+      prepend_comma = true;
+      query += column.m_name;
+    }
+    query += " FROM ";
+    query += s.get_from_table();
+    query += ';';
+    struct closure {
+      select_statement<T, D>* m_statement;
+      typename select_statement<T, D>::destination m_destination;
+    };
+    closure c{&s, s.get_first()};
+    auto callback = [] (void* data, int count, char** values, char** names) {
+      auto& c = reinterpret_cast<closure*>(data);
+      for(auto i = 0; i < count; ++i) {
+        c.m_statement->get_table().extract_value(&values[i], c.m_destination);
+        ++c.m_destination;
+      }
+      return 0;
+    };
+    char* error;
+    auto result = ::sqlite3_exec(m_handle, query.c_str(), +callback, &c,
+      &error);
+    if(result != SQLITE_OK) {
+      ::sqlite3_free(error);
+      throw execute_exception(error);
+    }
   }
 
   inline void connection::open() {
@@ -74,6 +192,15 @@ namespace sqlite3 {
     }
     ::sqlite3_close(m_handle);
     m_handle = nullptr;
+  }
+
+  inline std::string connection::get_name(sql_data_type type) {
+    switch(type) {
+      case sql_data_type::INTEGER:
+        return "INTEGER";
+      default:
+        return "";
+    }
   }
 }
 }

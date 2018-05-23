@@ -1,6 +1,6 @@
 #ifndef VIPER_SELECT_STATEMENT_HPP
 #define VIPER_SELECT_STATEMENT_HPP
-#include <string_view>
+#include <string>
 #include "viper/table.hpp"
 
 namespace viper {
@@ -25,8 +25,7 @@ namespace viper {
         \param from The table to select from.
         \param first An output iterator used to store the rows.
       */
-      select_statement(result_table r, std::string_view from,
-        destination first);
+      select_statement(result_table r, std::string from, destination first);
 
       //! Returns the result table.
       const result_table& get_result_table() const;
@@ -50,15 +49,15 @@ namespace viper {
     \param first An output iterator used to store the rows.
   */
   template<typename T, typename D>
-  auto select(T r, std::string_view from, D first) {
-    return select_statement(std::move(r), from, std::move(first));
+  auto select(T r, std::string from, D first) {
+    return select_statement(std::move(r), std::move(from), std::move(first));
   }
 
   template<typename T, typename D>
-  select_statement<T, D>::select_statement(result_table r,
-      std::string_view from, destination first)
+  select_statement<T, D>::select_statement(result_table r, std::string from,
+      destination first)
       : m_result_table(std::move(r)),
-        m_from(from),
+        m_from_table(std::move(from)),
         m_first(std::move(first)) {}
 
   template<typename T, typename D>
