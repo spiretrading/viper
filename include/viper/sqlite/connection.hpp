@@ -101,7 +101,7 @@ namespace sqlite3 {
     query += s.get_into_table();
     query += " (";
     auto prepend_comma = false;
-    for(auto& column : s.get_table().get_columns()) {
+    for(auto& column : s.get_from_table().get_columns()) {
       if(prepend_comma) {
         query += ',';
       }
@@ -117,13 +117,13 @@ namespace sqlite3 {
       prepend_comma = true;
       query += '(';
       auto prepend_value_comma = false;
-      for(int j = 0; j < static_cast<int>(s.get_table().get_columns().size());
-          ++j) {
+      for(int j = 0;
+          j < static_cast<int>(s.get_from_table().get_columns().size()); ++j) {
         if(prepend_value_comma) {
           query += ',';
         }
         prepend_value_comma = true;
-        s.get_table().append_value(*i, j, query);
+        s.get_from_table().append_value(*i, j, query);
       }
       query += ')';
     }
@@ -152,16 +152,17 @@ namespace sqlite3 {
     query += s.get_from_table();
     query += ';';
     struct closure {
-      select_statement<T, D>* m_statement;
+      const select_statement<T, D>* m_statement;
       typename select_statement<T, D>::destination m_destination;
     };
     closure c{&s, s.get_first()};
     auto callback = [] (void* data, int count, char** values, char** names) {
-      auto& c = reinterpret_cast<closure*>(data);
-      for(auto i = 0; i < count; ++i) {
-        c.m_statement->get_table().extract_value(&values[i], c.m_destination);
-        ++c.m_destination;
-      }
+      auto& c = *reinterpret_cast<closure*>(data);
+      typename select_statement<T, D>::result_table::type value;
+      c.m_statement->get_result_table().extract(
+        const_cast<const char**>(values), value);
+      c.m_destination = std::move(value);
+      ++c.m_destination;
       return 0;
     };
     char* error;

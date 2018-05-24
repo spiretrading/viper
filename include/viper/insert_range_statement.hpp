@@ -35,7 +35,7 @@ namespace viper {
         end_t end);
 
       //! Returns the table to insert into.
-      const table& get_table() const;
+      const table& get_from_table() const;
 
       //! Returns the table to insert into.
       const std::string& get_into_table() const;
@@ -76,7 +76,7 @@ namespace viper {
 
   template<typename T, typename B, typename E>
   const typename insert_range_statement<T, B, E>::table&
-      insert_range_statement<T, B, E>::get_table() const {
+      insert_range_statement<T, B, E>::get_from_table() const {
     return m_table;
   }
 

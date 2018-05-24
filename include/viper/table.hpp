@@ -26,6 +26,13 @@ namespace viper {
       //! Returns the list of columns.
       const std::vector<column>& get_columns() const;
 
+      //! Extracts an SQL row.
+      /*!
+        \param row The SQL row of values to extract.
+        \param value The value to store the rows in.
+      */
+      void extract(const char** row, type& value) const;
+
       //! Appends a value to an SQL query string.
       /*!
         \param value The value to append.
@@ -136,6 +143,14 @@ namespace viper {
   template<typename T>
   const std::vector<column>& table<T>::get_columns() const {
     return m_data->m_columns;
+  }
+
+  template<typename T>
+  void table<T>::extract(const char** row, type& value) const {
+    for(auto& accessor : m_data->m_accessors) {
+      accessor.m_setter(value, row);
+      ++row;
+    }
   }
 
   template<typename T>
