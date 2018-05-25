@@ -43,12 +43,17 @@ endif()
 
 file(GLOB header_files ./include/viper/*.hpp)
 file(GLOB source_files ./source/*.cpp)
+file(GLOB data_types_header_files ./include/viper/data_types/*.hpp)
 file(GLOB sqlite_header_files ./include/viper/sqlite/*.hpp)
 
-add_library(viper ${header_files} ${sqlite_header_files} ${source_files})
+add_library(viper ${header_files} ${data_types_header_files}
+  ${sqlite_header_files} ${source_files})
 set_source_files_properties(${header_files} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties(${sqlite_header_files} PROPERTIES
   HEADER_FILE_ONLY TRUE)
+set_source_files_properties(${data_types_header_files} PROPERTIES
+  HEADER_FILE_ONLY TRUE)
+source_group("Header Files\\data_types" FILES ${data_types_header_files})
 source_group("Header Files\\sqlite" FILES ${sqlite_header_files})
 set_target_properties(viper PROPERTIES
   STATIC_LIBRARY_FLAGS_RELEASE "${CMAKE_LIBRARY_FLAGS}" OUTPUT_NAME viper)
