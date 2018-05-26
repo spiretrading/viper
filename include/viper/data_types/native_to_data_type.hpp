@@ -1,6 +1,9 @@
 #ifndef VIPER_NATIVE_TO_DATA_TYPE_HPP
 #define VIPER_NATIVE_TO_DATA_TYPE_HPP
+#include <cstdint>
+#include <string>
 #include "viper/data_types/integer_data_type.hpp"
+#include "viper/data_types/varchar_data_type.hpp"
 
 namespace viper {
 
@@ -10,6 +13,9 @@ namespace viper {
 
   template<>
   auto native_to_data_type_v<std::int32_t> = integer_data_type(true, 4);
+
+  template<>
+  auto native_to_data_type_v<std::string> = varchar_data_type();
 }
 
 #endif

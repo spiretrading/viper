@@ -14,6 +14,10 @@ namespace viper::sqlite3 {
       void visit(const integer_data_type& type) override {
         m_result = "INTEGER";
       }
+
+      void visit(const varchar_data_type& type) override {
+        m_result = "TEXT";
+      }
     };
     visitor v;
     t.apply(v);

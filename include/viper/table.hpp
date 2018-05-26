@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
 #include "viper/column.hpp"
 #include "viper/conversions.hpp"
@@ -76,7 +77,20 @@ namespace viper {
         \return A new table containing the column.
       */
       template<typename G, typename S>
-      table add_column(std::string name, G getter, S setter) const;
+      std::enable_if_t<std::is_invocable_v<G> && std::is_invocable_v<S>, table>
+        add_column(std::string name, G getter, S setter) const;
+
+      //! Defines a column using getter and setter methods.
+      /*!
+        \param name The name of the column.
+        \param t The column's data type.
+        \param getter The method used to return the value to store.
+        \param setter The method used to set the value retrieved.
+        \return A new table containing the column.
+      */
+      template<typename G, typename S>
+      table add_column(std::string name, const data_type& t, G getter,
+        S setter) const;
 
       //! Defines a column tied directly to a data member.
       /*!
@@ -86,6 +100,17 @@ namespace viper {
       */
       template<typename U>
       table add_column(std::string name, U type::* member) const;
+
+      //! Defines a column tied directly to a data member.
+      /*!
+        \param name The name of the column.
+        \param t The column's data type.
+        \param member A pointer to the member to tie the column to.
+        \return A new table containing the column.
+      */
+      template<typename U>
+      table add_column(std::string name, const data_type& t,
+        U type::* member) const;
 
     private:
       struct accessors {
@@ -202,16 +227,31 @@ namespace viper {
 
   template<typename T>
   template<typename G, typename S>
-  table<T> table<T>::add_column(std::string name, G getter,
-      S setter) const {
+  std::enable_if_t<std::is_invocable_v<G> && std::is_invocable_v<S>, table<T>>
+      table<T>::add_column(std::string name, G getter, S setter) const {
     return add_column(std::move(name), make_getter<T>(std::move(getter)),
+      make_setter<T>(std::move(setter)));
+  }
+
+  template<typename T>
+  template<typename G, typename S>
+  table<T> table<T>::add_column(std::string name, const data_type& t, G getter,
+      S setter) const {
+    return add_column(std::move(name), t, make_getter<T>(std::move(getter)),
       make_setter<T>(std::move(setter)));
   }
 
   template<typename T>
   template<typename U>
   table<T> table<T>::add_column(std::string name, U T::* member) const {
-    return add_column(std::move(name),
+    return add_column(std::move(name), native_to_data_type_v<U>, member);
+  }
+
+  template<typename T>
+  template<typename U>
+  table<T> table<T>::add_column(std::string name, const data_type& t,
+      U type::* member) const {
+    return add_column(std::move(name), t,
       [=] (const type& value) -> const U& {
         return value.*member;
       },

@@ -1,5 +1,6 @@
 #ifndef VIPER_CONVERSIONS_HPP
 #define VIPER_CONVERSIONS_HPP
+#include <cstdint>
 #include <string>
 
 namespace viper {
@@ -45,16 +46,30 @@ namespace viper {
   }
 
   template<>
-  struct to_sql<int> {
-    void operator ()(int value, std::string& column) const {
+  struct to_sql<std::int32_t> {
+    void operator ()(std::int32_t value, std::string& column) const {
       column += std::to_string(value);
     }
   };
 
   template<>
-  struct from_sql<int> {
-    int operator ()(const char* column) const {
+  struct from_sql<std::int32_t> {
+    std::int32_t operator ()(const char* column) const {
       return std::stoi(column);
+    }
+  };
+
+  template<>
+  struct to_sql<std::string> {
+    void operator ()(std::string value, std::string& column) const {
+      column += "\"" + value + "\"";
+    }
+  };
+
+  template<>
+  struct from_sql<std::string> {
+    std::string operator ()(const char* column) const {
+      return column;
     }
   };
 }

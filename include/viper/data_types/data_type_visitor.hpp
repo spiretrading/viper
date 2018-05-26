@@ -4,6 +4,7 @@
 namespace viper {
   class data_type;
   class integer_data_type;
+  class varchar_data_type;
 
   //! Implements the visitor pattern for SQL data types.
   class data_type_visitor {
@@ -13,6 +14,8 @@ namespace viper {
       virtual void visit(const data_type& type);
 
       virtual void visit(const integer_data_type& type);
+
+      virtual void visit(const varchar_data_type& type);
 
     protected:
 
