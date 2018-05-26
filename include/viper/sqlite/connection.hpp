@@ -7,9 +7,9 @@
 #include "viper/execute_exception.hpp"
 #include "viper/insert_range_statement.hpp"
 #include "viper/select_statement.hpp"
+#include "viper/sqlite/data_type_name.hpp"
 
-namespace viper {
-namespace sqlite3 {
+namespace viper::sqlite3 {
 
   //! Represents a connection to an SQL database.
   class connection {
@@ -53,8 +53,6 @@ namespace sqlite3 {
     private:
       std::string m_path;
       ::sqlite3* m_handle;
-
-      static std::string get_name(sql_data_type type);
   };
 
   inline connection::connection(std::string path)
@@ -80,7 +78,7 @@ namespace sqlite3 {
       prepend_comma = true;
       query += column.m_name;
       query += ' ';
-      query += get_name(column.m_type);
+      query += get_name(*column.m_type);
     }
     query += ");";
     char* error;
@@ -194,16 +192,6 @@ namespace sqlite3 {
     ::sqlite3_close(m_handle);
     m_handle = nullptr;
   }
-
-  inline std::string connection::get_name(sql_data_type type) {
-    switch(type) {
-      case sql_data_type::INTEGER:
-        return "INTEGER";
-      default:
-        return "";
-    }
-  }
-}
 }
 
 #endif

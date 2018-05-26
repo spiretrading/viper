@@ -7,6 +7,7 @@
 #include "viper/column.hpp"
 #include "viper/conversions.hpp"
 #include "viper/function_traits.hpp"
+#include "viper/data_types/native_to_data_type.hpp"
 
 namespace viper {
 
@@ -42,7 +43,18 @@ namespace viper {
       void append_value(const type& value, int column,
         std::string& query) const;
 
-      //! Appends a column value to a query.
+      //! Defines a column.
+      /*!
+        \param name The name of the column.
+        \param t The columns SQL data type.
+        \param getter The function used to return the value to store.
+        \param setter The function used to set the value retrived.
+        \return A new table containing the column.
+      */
+      template<typename G, typename S>
+      table add_column(std::string name, const data_type& t,
+        std::function<G (const type& value)> getter,
+        std::function<void (type& value, S column)> setter) const;
 
       //! Defines a column.
       /*!
@@ -161,13 +173,13 @@ namespace viper {
 
   template<typename T>
   template<typename G, typename S>
-  table<T> table<T>::add_column(std::string name,
+  table<T> table<T>::add_column(std::string name, const data_type& t,
       std::function<G (const type& value)> getter,
       std::function<void (type& value, S column)> setter) const {
     table<T> r;
     r.m_data->m_columns = m_data->m_columns;
     r.m_data->m_accessors = m_data->m_accessors;
-    r.m_data->m_columns.emplace_back(std::move(name), to_sql_type_v<G>);
+    r.m_data->m_columns.emplace_back(std::move(name), t);
     r.m_data->m_accessors.emplace_back(
       [=] (const type& value, std::string& columns) {
         convert_to_sql(getter(value), columns);
@@ -177,6 +189,15 @@ namespace viper {
       },
       1);
     return r;
+  }
+
+  template<typename T>
+  template<typename G, typename S>
+  table<T> table<T>::add_column(std::string name,
+      std::function<G (const type& value)> getter,
+      std::function<void (type& value, S column)> setter) const {
+    return add_column(std::move(name), native_to_data_type_v<G>,
+      std::move(getter), std::move(setter));
   }
 
   template<typename T>
