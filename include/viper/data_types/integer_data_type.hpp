@@ -33,6 +33,30 @@ namespace viper {
       int m_size;
   };
 
+  //! 8-bit signed integer.
+  static inline auto tiny_int = integer_data_type(true, 1);
+
+  //! 8-bit unsigned integer.
+  static inline auto tiny_uint = integer_data_type(false, 1);
+
+  //! 16-bit signed integer.
+  static inline auto small_int = integer_data_type(true, 2);
+
+  //! 16-bit unsigned integer.
+  static inline auto small_uint = integer_data_type(false, 2);
+
+  //! 32-bit signed integer.
+  static inline auto integer = integer_data_type(true, 4);
+
+  //! 32-bit unsigned integer.
+  static inline auto uinteger = integer_data_type(false, 4);
+
+  //! 64-bit signed integer.
+  static inline auto big_int = integer_data_type(true, 8);
+
+  //! 64-bit unsigned integer.
+  static inline auto big_uint = integer_data_type(false, 8);
+
   inline integer_data_type::integer_data_type(bool is_signed, int size)
       : m_is_signed(is_signed),
         m_size(size) {}

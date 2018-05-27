@@ -77,7 +77,7 @@ namespace viper {
         \return A new table containing the column.
       */
       template<typename G, typename S>
-      std::enable_if_t<std::is_invocable_v<G> && std::is_invocable_v<S>, table>
+      std::enable_if_t<std::is_invocable_v<G, const type&>, table>
         add_column(std::string name, G getter, S setter) const;
 
       //! Defines a column using getter and setter methods.
@@ -227,7 +227,7 @@ namespace viper {
 
   template<typename T>
   template<typename G, typename S>
-  std::enable_if_t<std::is_invocable_v<G> && std::is_invocable_v<S>, table<T>>
+  std::enable_if_t<std::is_invocable_v<G, const T&>, table<T>>
       table<T>::add_column(std::string name, G getter, S setter) const {
     return add_column(std::move(name), make_getter<T>(std::move(getter)),
       make_setter<T>(std::move(setter)));

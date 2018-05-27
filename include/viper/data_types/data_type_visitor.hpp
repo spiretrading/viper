@@ -3,6 +3,7 @@
 
 namespace viper {
   class data_type;
+  class float_data_type;
   class integer_data_type;
   class varchar_data_type;
 
@@ -12,6 +13,8 @@ namespace viper {
       virtual ~data_type_visitor() = default;
 
       virtual void visit(const data_type& type);
+
+      virtual void visit(const float_data_type& type);
 
       virtual void visit(const integer_data_type& type);
 

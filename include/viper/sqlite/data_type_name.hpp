@@ -11,6 +11,10 @@ namespace viper::sqlite3 {
     struct visitor final : data_type_visitor {
       std::string m_result;
 
+      void visit(const float_data_type& type) override {
+        m_result = "REAL";
+      }
+
       void visit(const integer_data_type& type) override {
         m_result = "INTEGER";
       }

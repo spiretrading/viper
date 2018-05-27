@@ -46,6 +46,34 @@ namespace viper {
   }
 
   template<>
+  struct to_sql<double> {
+    void operator ()(double value, std::string& column) const {
+      column += std::to_string(value);
+    }
+  };
+
+  template<>
+  struct from_sql<double> {
+    double operator ()(const char* column) const {
+      return std::stod(column);
+    }
+  };
+
+  template<>
+  struct to_sql<float> {
+    void operator ()(float value, std::string& column) const {
+      column += std::to_string(value);
+    }
+  };
+
+  template<>
+  struct from_sql<float> {
+    float operator ()(const char* column) const {
+      return std::stof(column);
+    }
+  };
+
+  template<>
   struct to_sql<std::int32_t> {
     void operator ()(std::int32_t value, std::string& column) const {
       column += std::to_string(value);
