@@ -23,6 +23,17 @@ namespace viper {
     function_traits<R (T::*)(A...)> {};
 
   template<typename F>
+  struct get_argument {};
+
+  template<typename R, typename A1, typename A2>
+  struct get_argument<std::function<R (A1, A2)>> {
+    using type = std::decay_t<A2>;
+  };
+
+  template<typename F>
+  using get_argument_t = typename get_argument<F>::type;
+
+  template<typename F>
   auto make_function(F&& f) {
     return typename function_traits<F>::type(std::forward<F>(f));
   }

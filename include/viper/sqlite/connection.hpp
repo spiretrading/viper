@@ -65,7 +65,7 @@ namespace viper::sqlite3 {
 
   template<typename T>
   void connection::execute(const create_table_statement<T>& s) {
-    std::string query = "CREATE TABLE ";
+    std::string query = "BEGIN;CREATE TABLE ";
     if(s.get_exists_flag()) {
       query += "IF NOT EXISTS ";
     }
@@ -79,14 +79,54 @@ namespace viper::sqlite3 {
       query += column.m_name;
       query += ' ';
       query += get_name(*column.m_type);
+      if(!column.m_is_nullable) {
+        query += " NOT NULL";
+      }
+    }
+    if(!s.get_table().get_indexes().empty() &&
+        s.get_table().get_indexes().front().m_is_primary) {
+      query += ",PRIMARY KEY(";
+      auto prepend_comma = false;
+      auto& primary = s.get_table().get_indexes().front();
+      for(auto& c : primary.m_columns) {
+        if(prepend_comma) {
+          query += ',';
+        }
+        prepend_comma = true;
+        query += c;
+      }
+      query += ')';
     }
     query += ");";
+    for(auto& current_index : s.get_table().get_indexes()) {
+      if(current_index.m_is_primary) {
+        continue;
+      }
+      if(current_index.m_is_unique) {
+        query += "CREATE UNIQUE INDEX";
+      } else {
+        query += "CREATE INDEX";
+      }
+      query += " IF NOT EXISTS " + current_index.m_name + " ON " +
+        s.get_name() + "(";
+      auto prepend_comma = false;
+      for(auto& c : current_index.m_columns) {
+        if(prepend_comma) {
+          query += ',';
+        }
+        prepend_comma = true;
+        query += c;
+      }
+      query += ");";
+    }
+    query += "COMMIT;";
     char* error;
     auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
       &error);
     if(result != SQLITE_OK) {
+      std::string err = error;
       ::sqlite3_free(error);
-      throw execute_exception(error);
+      throw execute_exception(err);
     }
   }
 
@@ -130,8 +170,9 @@ namespace viper::sqlite3 {
     auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
       &error);
     if(result != SQLITE_OK) {
+      std::string err = error;
       ::sqlite3_free(error);
-      throw execute_exception(error);
+      throw execute_exception(err);
     }
   }
 
@@ -167,8 +208,9 @@ namespace viper::sqlite3 {
     auto result = ::sqlite3_exec(m_handle, query.c_str(), +callback, &c,
       &error);
     if(result != SQLITE_OK) {
+      std::string err = error;
       ::sqlite3_free(error);
-      throw execute_exception(error);
+      throw execute_exception(err);
     }
   }
 
