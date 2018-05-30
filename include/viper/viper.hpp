@@ -1,6 +1,7 @@
 #ifndef VIPER_HPP
 #define VIPER_HPP
 #include "viper/data_types/data_types.hpp"
+#include "viper/expressions/expressions.hpp"
 #include "viper/column.hpp"
 #include "viper/connect_exception.hpp"
 #include "viper/conversions.hpp"
