@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(viper_tester)
 
-include_directories(./include)
-include_directories(./../../include)
-include_directories(./../third_party/sqlite)
-include_directories(./../third_party/Catch2/single_include)
+include_directories(./../include)
+include_directories(./third_party/sqlite)
+include_directories(./third_party/Catch2/single_include)
 
 if(MSVC)
   set(CMAKE_LIBRARY_FLAGS "/LTCG")

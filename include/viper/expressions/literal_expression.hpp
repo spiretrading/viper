@@ -1,5 +1,6 @@
 #ifndef VIPER_LITERAL_EXPRESSION_HPP
 #define VIPER_LITERAL_EXPRESSION_HPP
+#include <string>
 #include "viper/expressions/expression.hpp"
 
 namespace viper {
