@@ -8,6 +8,7 @@
 #include "viper/insert_range_statement.hpp"
 #include "viper/select_statement.hpp"
 #include "viper/sqlite/data_type_name.hpp"
+#include "viper/sqlite/query_builder.hpp"
 
 namespace viper::sqlite3 {
 
@@ -65,61 +66,8 @@ namespace viper::sqlite3 {
 
   template<typename T>
   void connection::execute(const create_table_statement<T>& s) {
-    std::string query = "BEGIN;CREATE TABLE ";
-    if(s.get_exists_flag()) {
-      query += "IF NOT EXISTS ";
-    }
-    query += s.get_name() + '(';
-    auto prepend_comma = false;
-    for(auto& column : s.get_table().get_columns()) {
-      if(prepend_comma) {
-        query += ',';
-      }
-      prepend_comma = true;
-      query += column.m_name;
-      query += ' ';
-      query += get_name(*column.m_type);
-      if(!column.m_is_nullable) {
-        query += " NOT NULL";
-      }
-    }
-    if(!s.get_table().get_indexes().empty() &&
-        s.get_table().get_indexes().front().m_is_primary) {
-      query += ",PRIMARY KEY(";
-      auto prepend_comma = false;
-      auto& primary = s.get_table().get_indexes().front();
-      for(auto& c : primary.m_columns) {
-        if(prepend_comma) {
-          query += ',';
-        }
-        prepend_comma = true;
-        query += c;
-      }
-      query += ')';
-    }
-    query += ");";
-    for(auto& current_index : s.get_table().get_indexes()) {
-      if(current_index.m_is_primary) {
-        continue;
-      }
-      if(current_index.m_is_unique) {
-        query += "CREATE UNIQUE INDEX";
-      } else {
-        query += "CREATE INDEX";
-      }
-      query += " IF NOT EXISTS " + current_index.m_name + " ON " +
-        s.get_name() + "(";
-      auto prepend_comma = false;
-      for(auto& c : current_index.m_columns) {
-        if(prepend_comma) {
-          query += ',';
-        }
-        prepend_comma = true;
-        query += c;
-      }
-      query += ");";
-    }
-    query += "COMMIT;";
+    std::string query;
+    build_query(s, query);
     char* error;
     auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
       &error);
@@ -132,40 +80,8 @@ namespace viper::sqlite3 {
 
   template<typename T, typename B, typename E>
   void connection::execute(const insert_range_statement<T, B, E>& s) {
-    if(s.get_begin() == s.get_end()) {
-      return;
-    }
-    std::string query = "INSERT INTO ";
-    query += s.get_into_table();
-    query += " (";
-    auto prepend_comma = false;
-    for(auto& column : s.get_from_table().get_columns()) {
-      if(prepend_comma) {
-        query += ',';
-      }
-      prepend_comma = true;
-      query += column.m_name;
-    }
-    query += ") VALUES ";
-    prepend_comma = false;
-    for(auto i = s.get_begin(); i != s.get_end(); ++i) {
-      if(prepend_comma) {
-        query += ',';
-      }
-      prepend_comma = true;
-      query += '(';
-      auto prepend_value_comma = false;
-      for(int j = 0;
-          j < static_cast<int>(s.get_from_table().get_columns().size()); ++j) {
-        if(prepend_value_comma) {
-          query += ',';
-        }
-        prepend_value_comma = true;
-        s.get_from_table().append_value(*i, j, query);
-      }
-      query += ')';
-    }
-    query += ';';
+    std::string query;
+    build_query(s, query);
     char* error;
     auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
       &error);
@@ -178,18 +94,8 @@ namespace viper::sqlite3 {
 
   template<typename T, typename D>
   void connection::execute(const select_statement<T, D>& s) {
-    std::string query = "SELECT ";
-    auto prepend_comma = false;
-    for(auto& column : s.get_result_table().get_columns()) {
-      if(prepend_comma) {
-        query += ',';
-      }
-      prepend_comma = true;
-      query += column.m_name;
-    }
-    query += " FROM ";
-    query += s.get_from_table();
-    query += ';';
+    std::string query;
+    build_query(s, query);
     struct closure {
       const select_statement<T, D>* m_statement;
       typename select_statement<T, D>::destination m_destination;

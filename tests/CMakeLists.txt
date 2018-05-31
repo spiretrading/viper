@@ -39,8 +39,13 @@ if(NOT EXISTS ./release)
 endif()
 
 file(GLOB source_files ./source/*.cpp)
+file(GLOB expressions_source_files ./source/expressions/*.cpp)
+source_group("Source Files\\expressions" FILES ${expressions_source_files})
+file(GLOB sqlite_source_files ./source/sqlite/*.cpp)
+source_group("Source Files\\sqlite" FILES ${sqlite_source_files})
 
-add_executable(viper_tester ${source_files})
+add_executable(viper_tester ${source_files} ${expressions_source_files}
+  ${sqlite_source_files})
 add_custom_command(TARGET viper_tester POST_BUILD COMMAND viper_tester)
 install(TARGETS viper_tester CONFIGURATIONS Debug DESTINATION ./debug)
 install(TARGETS viper_tester CONFIGURATIONS Release RelWithDebInfo
