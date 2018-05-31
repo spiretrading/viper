@@ -7,6 +7,32 @@
 #include "viper/sqlite/data_type_name.hpp"
 
 namespace viper::sqlite3 {
+namespace details {
+  template<typename B, typename E, typename F>
+  void append_list(B b, E e, std::string& query, F&& f) {
+    auto prepend_comma = false;
+    for(auto i = b; i != e; ++i) {
+      if(prepend_comma) {
+        query += ',';
+      }
+      prepend_comma = true;
+      f(*i, query);
+    }
+  }
+
+  template<typename T, typename F>
+  void append_list(const T& list, std::string& query, F&& f) {
+    append_list(list.begin(), list.end(), query, f);
+  }
+
+  template<typename T>
+  void append_list(const T& list, std::string& query) {
+    return append_list(list, query,
+      [] (auto& item, std::string& query) {
+        query += item;
+      });
+  }
+}
 
   //! Builds a create table query statement.
   /*!
@@ -21,31 +47,18 @@ namespace viper::sqlite3 {
       query += "IF NOT EXISTS ";
     }
     query += statement.get_name() + '(';
-    auto prepend_comma = false;
-    for(auto& column : statement.get_table().get_columns()) {
-      if(prepend_comma) {
-        query += ',';
-      }
-      prepend_comma = true;
-      query += column.m_name;
-      query += ' ';
-      query += get_name(*column.m_type);
-      if(!column.m_is_nullable) {
-        query += " NOT NULL";
-      }
-    }
+    details::append_list(statement.get_table().get_columns(), query,
+      [] (auto& column, auto& query) {
+        query += column.m_name + ' ' + get_name(*column.m_type);
+        if(!column.m_is_nullable) {
+          query += " NOT NULL";
+        }
+      });
     if(!statement.get_table().get_indexes().empty() &&
         statement.get_table().get_indexes().front().m_is_primary) {
       query += ",PRIMARY KEY(";
-      auto prepend_comma = false;
-      auto& primary = statement.get_table().get_indexes().front();
-      for(auto& c : primary.m_columns) {
-        if(prepend_comma) {
-          query += ',';
-        }
-        prepend_comma = true;
-        query += c;
-      }
+      details::append_list(
+        statement.get_table().get_indexes().front().m_columns, query);
       query += ')';
     }
     query += ");";
@@ -60,14 +73,7 @@ namespace viper::sqlite3 {
       }
       query += " IF NOT EXISTS " + current_index.m_name + " ON " +
         statement.get_name() + "(";
-      auto prepend_comma = false;
-      for(auto& c : current_index.m_columns) {
-        if(prepend_comma) {
-          query += ',';
-        }
-        prepend_comma = true;
-        query += c;
-      }
+      details::append_list(current_index.m_columns, query);
       query += ");";
     }
     query += "COMMIT;";
@@ -87,33 +93,25 @@ namespace viper::sqlite3 {
     query += "INSERT INTO ";
     query += statement.get_into_table();
     query += " (";
-    auto prepend_comma = false;
-    for(auto& column : statement.get_from_table().get_columns()) {
-      if(prepend_comma) {
-        query += ',';
-      }
-      prepend_comma = true;
-      query += column.m_name;
-    }
+    details::append_list(statement.get_from_table().get_columns(), query,
+      [] (auto& column, auto& query) {
+        query += column.m_name;
+      });
     query += ") VALUES ";
-    prepend_comma = false;
-    for(auto i = statement.get_begin(); i != statement.get_end(); ++i) {
-      if(prepend_comma) {
-        query += ',';
-      }
-      prepend_comma = true;
-      query += '(';
-      auto prepend_value_comma = false;
-      for(int j = 0; j < static_cast<int>(
-          statement.get_from_table().get_columns().size()); ++j) {
-        if(prepend_value_comma) {
-          query += ',';
+    details::append_list(statement.get_begin(), statement.get_end(), query,
+      [] (auto& column, auto& query) {
+        query += '(';
+        auto prepend_comma = false;
+        for(int j = 0; j < static_cast<int>(
+            statement.get_from_table().get_columns().size()); ++j) {
+          if(prepend_comma) {
+            query += ',';
+          }
+          prepend_comma = true;
+          statement.get_from_table().append_value(*i, j, query);
         }
-        prepend_value_comma = true;
-        statement.get_from_table().append_value(*i, j, query);
-      }
-      query += ')';
-    }
+        query += ')';
+      });
     query += ';';
   }
 
@@ -139,6 +137,26 @@ namespace viper::sqlite3 {
     if(statement.get_where() != std::nullopt) {
       query += " WHERE ";
       statement.get_where()->append_query(query);
+    }
+    if(statement.get_order() != std::nullopt &&
+        !statement.get_order()->m_columns.empty()) {
+      query += " ORDER BY ";
+      if(statement.get_order()->m_columns.size() == 1) {
+        query += statement.get_order()->m_columns.front();
+      } else {
+        query += '(';
+        details::append_list(statement.get_order()->m_columns, query);
+        query += ')';
+      }
+      if(statement.get_order()->m_order == order::ASC) {
+        query += " ASC";
+      } else {
+        query += " DESC";
+      }
+    }
+    if(statement.get_limit() != std::nullopt) {
+      query += " LIMIT ";
+      query += std::to_string(statement.get_limit()->m_value);
     }
     query += ';';
   }
