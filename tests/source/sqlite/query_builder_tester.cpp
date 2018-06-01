@@ -82,4 +82,11 @@ TEST_CASE("test_build_select_query", "[sqlite_query_builder]") {
     build_query(s, q);
     REQUIRE(q == "SELECT x,y FROM t1 WHERE (5 = x) ORDER BY x DESC LIMIT 432;");
   }
+  SECTION("Select query with an expression column.") {
+    int value;
+    auto s = select(max<int>("abc"), "t1", &value);
+    std::string q;
+    build_query(s, q);
+    REQUIRE(q == "SELECT MAX(abc) FROM t1;");
+  }
 }

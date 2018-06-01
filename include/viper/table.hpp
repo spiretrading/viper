@@ -48,6 +48,13 @@ namespace viper {
       void append_value(const type& value, int column,
         std::string& query) const;
 
+      //! Defines a column for a table with a single column.
+      /*!
+        \param name The name of the column.
+        \return A new table containing the column.
+      */
+      table add_column(std::string name) const;
+
       //! Defines a column using getter and setter methods.
       /*!
         \param name The name of the column.
@@ -77,8 +84,9 @@ namespace viper {
         \param member A pointer to the member to tie the column to.
         \return A new table containing the column.
       */
-      template<typename U>
-      table add_column(std::string name, U type::* member) const;
+      template<typename U, typename V = T>
+      std::enable_if_t<std::is_class_v<V>, table<V>> add_column(
+        std::string name, U V::* member) const;
 
       //! Defines a column tied directly to a data member.
       /*!
@@ -87,9 +95,9 @@ namespace viper {
         \param member A pointer to the member to tie the column to.
         \return A new table containing the column.
       */
-      template<typename U>
-      table add_column(std::string name, const data_type& t,
-        U type::* member) const;
+      template<typename U, typename V = T>
+      std::enable_if_t<std::is_class_v<V>, table<V>> add_column(
+        std::string name, const data_type& t, U V::* member) const;
 
       //! Sets the table's primary key.
       /*!
@@ -217,11 +225,24 @@ namespace viper {
   }
 
   template<typename T>
+  table<T> table<T>::add_column(std::string name) const {
+    return add_column(std::move(name),
+      std::function<const type& (const type&)>(
+        [] (const type& v) -> decltype(auto) {
+          return v;
+        }),
+      std::function<void (type&, type)>(
+        [] (type& v, type s) {
+          v = std::move(s);
+        }));
+  }
+
+  template<typename T>
   template<typename G, typename S>
   std::enable_if_t<std::is_invocable_v<G, const T&>, table<T>>
       table<T>::add_column(std::string name, G getter, S setter) const {
-    return add_column(std::move(name), make_getter<T>(std::move(getter)),
-      make_setter<T>(std::move(setter)));
+    return add_column(std::move(name), native_to_data_type_v<G>,
+      make_getter<T>(std::move(getter)), make_setter<T>(std::move(setter)));
   }
 
   template<typename T>
@@ -245,15 +266,16 @@ namespace viper {
   }
 
   template<typename T>
-  template<typename U>
-  table<T> table<T>::add_column(std::string name, U T::* member) const {
+  template<typename U, typename V>
+  std::enable_if_t<std::is_class_v<V>, table<V>> table<T>::add_column(
+      std::string name, U V::* member) const {
     return add_column(std::move(name), native_to_data_type_v<U>, member);
   }
 
   template<typename T>
-  template<typename U>
-  table<T> table<T>::add_column(std::string name, const data_type& t,
-      U type::* member) const {
+  template<typename U, typename V>
+  std::enable_if_t<std::is_class_v<V>, table<V>> table<T>::add_column(
+      std::string name, const data_type& t, U V::* member) const {
     return add_column(std::move(name), t, make_getter(member),
       make_setter(member));
   }
@@ -285,7 +307,7 @@ namespace viper {
 
   template<typename T>
   table<T> table<T>::clone() const {
-    table<T> r;
+    table r;
     *r.m_data = *m_data;
     return r;
   }

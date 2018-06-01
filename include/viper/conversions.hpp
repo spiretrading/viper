@@ -3,40 +3,9 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include "viper/utilities.hpp"
 
 namespace viper {
-
-  //! Escapes special/reserved characters in an SQL string.
-  /*!
-    \param source The string to escape.
-  */
-  inline void escape(std::string_view source, std::string& destination) {
-    destination += '\"';
-    for(auto c : source) {
-      if(c == '\0') {
-        destination += "\\0";
-      } else if(c == '\'') {
-        destination += "\\'";
-      } else if(c == '\"') {
-        destination += "\\\"";
-      } else if(c == '\x08') {
-        destination += "\\b";
-      } else if(c == '\n') {
-        destination += "\\n";
-      } else if(c == '\r') {
-        destination += "\\r";
-      } else if(c == '\t') {
-        destination += "\\t";
-      } else if(c == '\x1A') {
-        destination += "\\n";
-      } else if(c == '\\') {
-        destination += "\\\\";
-      } else {
-        destination += c;
-      }
-    }
-    destination += '\"';
-  }
 
   /*! \brief Callable data type used to convert a value to an SQL column.
       \tparam T The data type to convert.

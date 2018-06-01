@@ -65,6 +65,38 @@ namespace details {
     return move_if<C1>(std::forward<T1>(a), move_if<C2>(std::forward<T2>(b),
       move_if<C3>(std::forward<T3>(c), std::forward<T4>(d))));
   }
+
+  //! Escapes special/reserved characters in an SQL string.
+  /*!
+    \param source The string to escape.
+  */
+  inline void escape(std::string_view source, std::string& destination) {
+    destination += '\"';
+    for(auto c : source) {
+      if(c == '\0') {
+        destination += "\\0";
+      } else if(c == '\'') {
+        destination += "\\'";
+      } else if(c == '\"') {
+        destination += "\\\"";
+      } else if(c == '\x08') {
+        destination += "\\b";
+      } else if(c == '\n') {
+        destination += "\\n";
+      } else if(c == '\r') {
+        destination += "\\r";
+      } else if(c == '\t') {
+        destination += "\\t";
+      } else if(c == '\x1A') {
+        destination += "\\n";
+      } else if(c == '\\') {
+        destination += "\\\\";
+      } else {
+        destination += c;
+      }
+    }
+    destination += '\"';
+  }
 }
 
 #endif

@@ -10,5 +10,6 @@
 #include "viper/insert_range_statement.hpp"
 #include "viper/select_statement.hpp"
 #include "viper/table.hpp"
+#include "viper/utilities.hpp"
 
 #endif
