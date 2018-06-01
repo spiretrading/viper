@@ -2,8 +2,10 @@
 #define VIPER_SELECT_STATEMENT_HPP
 #include <optional>
 #include <string>
+#include <type_traits>
 #include "viper/expressions/expression.hpp"
 #include "viper/table.hpp"
+#include "viper/utilities.hpp"
 
 namespace viper {
 
@@ -56,46 +58,41 @@ namespace viper {
       */
       select_statement(result_table r, std::string from, destination first);
 
-      //! Constructs a select statement.
+      //! Constructs a select statement with a single optional clause.
       /*!
         \param r The result table.
         \param from The table to select from.
-        \param where The where clause.
+        \param c1 The first clause to include.
         \param first An output iterator used to store the rows.
       */
-      select_statement(result_table r, std::string from, expression where,
+      template<typename C1>
+      select_statement(result_table r, std::string from, C1&& c1,
         destination first);
 
-      //! Constructs a select statement.
+      //! Constructs a select statement with a two optional clauses.
       /*!
         \param r The result table.
         \param from The table to select from.
-        \param o The ordering of the rows.
+        \param c1 The first clause to include.
+        \param c2 The second clause to include.
         \param first An output iterator used to store the rows.
       */
-      select_statement(result_table r, std::string from, order o,
+      template<typename C1, typename C2>
+      select_statement(result_table r, std::string from, C1&& c1, C2&& c2,
         destination first);
 
-      //! Constructs a select statement.
+      //! Constructs a select statement with a three optional clauses.
       /*!
         \param r The result table.
         \param from The table to select from.
-        \param l The maximum number of rows.
+        \param c1 The first clause to include.
+        \param c2 The second clause to include.
+        \param c3 The third clause to include.
         \param first An output iterator used to store the rows.
       */
-      select_statement(result_table r, std::string from, limit l,
-        destination first);
-
-      //! Constructs a select statement.
-      /*!
-        \param r The result table.
-        \param from The table to select from.
-        \param where The where clause.
-        \param l The maximum number of rows.
-        \param first An output iterator used to store the rows.
-      */
-      select_statement(result_table r, std::string from, expression where,
-        limit l, destination first);
+      template<typename C1, typename C2, typename C3>
+      select_statement(result_table r, std::string from, C1&& c1, C2&& c2,
+        C3&& c3, destination first);
 
       //! Returns the result table.
       const result_table& get_result_table() const;
@@ -122,6 +119,10 @@ namespace viper {
       std::optional<order> m_order;
       std::optional<limit> m_limit;
       destination m_first;
+
+      select_statement(result_table r, std::string from,
+        std::optional<expression> where, std::optional<order> o,
+        std::optional<limit> l, destination first);
   };
 
   //! Builds an ORDER BY clause.
@@ -147,57 +148,46 @@ namespace viper {
     return select_statement(std::move(r), std::move(from), std::move(first));
   }
 
-  //! Builds a select statement.
+  //! Builds a select statement with a single clause.
   /*!
     \param r The result table.
     \param from The table to select from.
-    \param where The where clause.
+    \param c1 The first clause.
     \param first An output iterator used to store the rows.
   */
-  template<typename T, typename D>
-  auto select(T r, std::string from, expression where, D first) {
-    return select_statement(std::move(r), std::move(from), std::move(where),
+  template<typename T, typename D, typename C1>
+  auto select(T r, std::string from, C1&& c1, D first) {
+    return select_statement(std::move(r), std::move(from), std::move(c1),
       std::move(first));
   }
 
-  //! Builds a select statement.
+  //! Builds a select statement with two clauses.
   /*!
     \param r The result table.
     \param from The table to select from.
-    \param o The ordering of the rows.
+    \param c1 The first clause.
+    \param c2 The second clause.
     \param first An output iterator used to store the rows.
   */
-  template<typename T, typename D>
-  auto select(T r, std::string from, order o, D first) {
-    return select_statement(std::move(r), std::move(from), std::move(o),
-      std::move(first));
+  template<typename T, typename D, typename C1, typename C2>
+  auto select(T r, std::string from, C1&& c1, C2&& c2, D first) {
+    return select_statement(std::move(r), std::move(from), std::move(c1),
+      std::move(c2), std::move(first));
   }
 
-  //! Builds a select statement.
+  //! Builds a select statement with three clauses.
   /*!
     \param r The result table.
     \param from The table to select from.
-    \param limit The maximum number of rows.
+    \param c1 The first clause.
+    \param c2 The second clause.
+    \param c3 The third clause.
     \param first An output iterator used to store the rows.
   */
-  template<typename T, typename D>
-  auto select(T r, std::string from, limit l, D first) {
-    return select_statement(std::move(r), std::move(from), std::move(l),
-      std::move(first));
-  }
-
-  //! Builds a select statement.
-  /*!
-    \param r The result table.
-    \param from The table to select from.
-    \param where The where clause.
-    \param limit The maximum number of rows.
-    \param first An output iterator used to store the rows.
-  */
-  template<typename T, typename D>
-  auto select(T r, std::string from, expression where, limit l, D first) {
-    return select_statement(std::move(r), std::move(from), std::move(where),
-      std::move(l), std::move(first));
+  template<typename T, typename D, typename C1, typename C2, typename C3>
+  auto select(T r, std::string from, C1&& c1, C2&& c2, C3&& c3, D first) {
+    return select_statement(std::move(r), std::move(from), std::move(c1),
+      std::move(c2), std::move(c3), std::move(first));
   }
 
   inline limit::limit(int value)
@@ -215,36 +205,54 @@ namespace viper {
         m_first(std::move(first)) {}
 
   template<typename T, typename D>
+  template<typename C1>
   select_statement<T, D>::select_statement(result_table r, std::string from,
-      expression where, destination first)
+      C1&& c1, destination first)
       : m_result_table(std::move(r)),
         m_from_table(std::move(from)),
-        m_where(std::move(where)),
+        m_where(move_if<std::is_constructible_v<expression, C1&&>>(
+          std::move(c1), std::nullopt)),
+        m_order(move_if<std::is_constructible_v<order, C1&&>>(
+          std::move(c1), std::nullopt)),
+        m_limit(move_if<std::is_constructible_v<limit, C1&&>>(
+          std::move(c1), std::nullopt)),
         m_first(std::move(first)) {}
 
   template<typename T, typename D>
+  template<typename C1, typename C2>
   select_statement<T, D>::select_statement(result_table r, std::string from,
-      order o, destination first)
+      C1&& c1, C2&& c2, destination first)
       : m_result_table(std::move(r)),
         m_from_table(std::move(from)),
-        m_order(std::move(o)),
+        m_where(move_if<std::is_constructible_v<expression, C1&&>,
+          std::is_constructible_v<expression, C2&&>>(std::move(c1),
+          std::move(c2), std::nullopt)),
+        m_order(move_if<std::is_constructible_v<order, C1&&>,
+          std::is_constructible_v<order, C2&&>>(std::move(c1), std::move(c2),
+          std::nullopt)),
+        m_limit(move_if<std::is_constructible_v<limit, C1&&>,
+          std::is_constructible_v<limit, C2&&>>(std::move(c1), std::move(c2),
+          std::nullopt)),
         m_first(std::move(first)) {}
 
   template<typename T, typename D>
+  template<typename C1, typename C2, typename C3>
   select_statement<T, D>::select_statement(result_table r, std::string from,
-      limit l, destination first)
+      C1&& c1, C2&& c2, C3&& c3, destination first)
       : m_result_table(std::move(r)),
         m_from_table(std::move(from)),
-        m_limit(std::move(l)),
-        m_first(std::move(first)) {}
-
-  template<typename T, typename D>
-  select_statement<T, D>::select_statement(result_table r, std::string from,
-      expression where, limit l, destination first)
-      : m_result_table(std::move(r)),
-        m_from_table(std::move(from)),
-        m_where(std::move(where)),
-        m_limit(std::move(l)),
+        m_where(move_if<std::is_constructible_v<expression, C1&&>,
+          std::is_constructible_v<expression, C2&&>,
+          std::is_constructible_v<expression, C3&&>>(std::move(c1),
+          std::move(c2), std::move(c3), std::nullopt)),
+        m_order(move_if<std::is_constructible_v<order, C1&&>,
+          std::is_constructible_v<order, C2&&>,
+          std::is_constructible_v<order, C3&&>>(std::move(c1), std::move(c2),
+          std::move(c3), std::nullopt)),
+        m_limit(move_if<std::is_constructible_v<limit, C1&&>,
+          std::is_constructible_v<limit, C2&&>,
+          std::is_constructible_v<limit, C3&&>>(std::move(c1), std::move(c2),
+          std::move(c3), std::nullopt)),
         m_first(std::move(first)) {}
 
   template<typename T, typename D>
@@ -278,6 +286,17 @@ namespace viper {
       select_statement<T, D>::get_first() const {
     return m_first;
   }
+
+  template<typename T, typename D>
+  select_statement<T, D>::select_statement(result_table r, std::string from,
+      std::optional<expression> where, std::optional<order> o,
+      std::optional<limit> l, destination first)
+      : m_result_table(std::move(r)),
+        m_from_table(std::move(from)),
+        m_where(std::move(where)),
+        m_order(std::move(o)),
+        m_limit(std::move(l)),
+        m_first(std::move(first)) {}
 }
 
 #endif

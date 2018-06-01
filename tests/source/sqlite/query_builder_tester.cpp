@@ -74,4 +74,12 @@ TEST_CASE("test_build_select_query", "[sqlite_query_builder]") {
     build_query(s, q);
     REQUIRE(q == "SELECT x,y FROM t1 WHERE (5 = x) LIMIT 432;");
   }
+  SECTION("Select query with a where, limit, and order clause.") {
+    std::vector<Data> rows;
+    auto s = select(get_table(), "t1", 5 == sym("x"), limit(432),
+      order_by("x", order::DESC), std::back_inserter(rows));
+    std::string q;
+    build_query(s, q);
+    REQUIRE(q == "SELECT x,y FROM t1 WHERE (5 = x) ORDER BY x DESC LIMIT 432;");
+  }
 }
