@@ -13,7 +13,7 @@ namespace {
   auto get_table() {
     return table<table_row>().
       add_column("x", &table_row::m_x).
-      set_primary_key({"x"}).
+      set_primary_key("x").
       add_column("y", &table_row::m_y);
   }
 }

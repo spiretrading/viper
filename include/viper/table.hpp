@@ -101,10 +101,41 @@ namespace viper {
 
       //! Sets the table's primary key.
       /*!
+        \param columns A column to use as the primary key.
+        \return A new table containing the primary key.
+      */
+      table set_primary_key(std::string column) const;
+
+      //! Sets the table's primary key.
+      /*!
+        \param columns A list of column names to use as the primary key.
+        \return A new table containing the primary key.
+      */
+      table set_primary_key(std::initializer_list<std::string> columns) const;
+
+      //! Sets the table's primary key.
+      /*!
         \param columns A list of column names to use as the primary key.
         \return A new table containing the primary key.
       */
       table set_primary_key(std::vector<std::string> columns) const;
+
+      //! Adds an index.
+      /*!
+        \param name The name of the index.
+        \param column The column to use as an index.
+        \return A new table containing the index.
+      */
+      table add_index(std::string name, std::string column) const;
+
+      //! Adds an index.
+      /*!
+        \param name The name of the index.
+        \param columns A list of column names to use as an index.
+        \return A new table containing the index.
+      */
+      table add_index(std::string name,
+        std::initializer_list<std::string> columns) const;
 
       //! Adds an index.
       /*!
@@ -281,6 +312,17 @@ namespace viper {
   }
 
   template<typename T>
+  table<T> table<T>::set_primary_key(std::string column) const {
+    return set_primary_key({column});
+  }
+
+  template<typename T>
+  table<T> table<T>::set_primary_key(
+      std::initializer_list<std::string> columns) const {
+    return set_primary_key(std::vector<std::string>{columns});
+  }
+
+  template<typename T>
   table<T> table<T>::set_primary_key(std::vector<std::string> columns) const {
     index i;
     i.m_columns = std::move(columns);
@@ -292,6 +334,17 @@ namespace viper {
     }
     r.m_data->m_indexes.insert(r.m_data->m_indexes.begin(), std::move(i));
     return r;
+  }
+
+  template<typename T>
+  table<T> table<T>::add_index(std::string name, std::string column) const {
+    return add_index(std::move(name), {column});
+  }
+
+  template<typename T>
+  table<T> table<T>::add_index(std::string name,
+      std::initializer_list<std::string> columns) const {
+    return add_index(std::move(name), std::vector<std::string>{columns});
   }
 
   template<typename T>
