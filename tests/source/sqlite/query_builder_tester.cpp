@@ -97,5 +97,5 @@ TEST_CASE("test_recursive_select", "[sqlite_query_builder]") {
     std::back_inserter(rows));
   std::string q;
   build_query(s, q);
-  REQUIRE(q == "SELECT x,y FROM t1 WHERE (5 = x) ORDER BY x DESC LIMIT 432;");
+  REQUIRE(q == "SELECT x,y FROM (SELECT a,b,c FROM t1) AS alias;");
 }

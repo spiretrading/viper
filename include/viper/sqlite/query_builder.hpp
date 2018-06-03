@@ -3,6 +3,7 @@
 #include <string>
 #include "viper/create_table_statement.hpp"
 #include "viper/insert_range_statement.hpp"
+#include "viper/select_clause.hpp"
 #include "viper/select_statement.hpp"
 #include "viper/sqlite/data_type_name.hpp"
 
@@ -115,6 +116,49 @@ namespace details {
     query += ';';
   }
 
+  //! Builds a select query clause.
+  /*!
+    \param clause The clause to build.
+    \param query The string to store the query in.
+  */
+  inline void build_query(const select_clause& clause, std::string& query) {
+    query += "SELECT ";
+    details::append_list(clause.get_columns(), query);
+    query += " FROM ";
+    auto& from = clause.get_from();
+    if(auto t = std::get_if<std::string>(&from)) {
+      query += *t;
+    } else if(auto t = std::get_if<std::shared_ptr<select_clause>>(&from)) {
+      query += '(';
+      build_query(**t, query);
+      query += ") AS alias";
+    }
+    if(clause.get_where() != std::nullopt) {
+      query += " WHERE ";
+      clause.get_where()->append_query(query);
+    }
+    if(clause.get_order() != std::nullopt &&
+        !clause.get_order()->m_columns.empty()) {
+      query += " ORDER BY ";
+      if(clause.get_order()->m_columns.size() == 1) {
+        query += clause.get_order()->m_columns.front();
+      } else {
+        query += '(';
+        details::append_list(clause.get_order()->m_columns, query);
+        query += ')';
+      }
+      if(clause.get_order()->m_order == order::ASC) {
+        query += " ASC";
+      } else {
+        query += " DESC";
+      }
+    }
+    if(clause.get_limit() != std::nullopt) {
+      query += " LIMIT ";
+      query += std::to_string(clause.get_limit()->m_value);
+    }
+  }
+
   //! Builds a select query statement.
   /*!
     \param statement The statement to build.
@@ -123,45 +167,7 @@ namespace details {
   template<typename T, typename D>
   void build_query(const select_statement<T, D>& statement,
       std::string& query) {
-    query += "SELECT ";
-    auto prepend_comma = false;
-    for(auto& column : statement.get_result_table().get_columns()) {
-      if(prepend_comma) {
-        query += ',';
-      }
-      prepend_comma = true;
-      query += column.m_name;
-    }
-    query += " FROM ";
-    auto& from = statement.get_clause().get_from();
-    if(auto t = std::get_if<std::string>(&from)) {
-      query += *t;
-    }
-    if(statement.get_clause().get_where() != std::nullopt) {
-      query += " WHERE ";
-      statement.get_clause().get_where()->append_query(query);
-    }
-    if(statement.get_clause().get_order() != std::nullopt &&
-        !statement.get_clause().get_order()->m_columns.empty()) {
-      query += " ORDER BY ";
-      if(statement.get_clause().get_order()->m_columns.size() == 1) {
-        query += statement.get_clause().get_order()->m_columns.front();
-      } else {
-        query += '(';
-        details::append_list(statement.get_clause().get_order()->m_columns,
-          query);
-        query += ')';
-      }
-      if(statement.get_clause().get_order()->m_order == order::ASC) {
-        query += " ASC";
-      } else {
-        query += " DESC";
-      }
-    }
-    if(statement.get_clause().get_limit() != std::nullopt) {
-      query += " LIMIT ";
-      query += std::to_string(statement.get_clause().get_limit()->m_value);
-    }
+    build_query(statement.get_clause(), query);
     query += ';';
   }
 }
