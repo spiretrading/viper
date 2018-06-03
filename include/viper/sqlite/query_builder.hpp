@@ -133,30 +133,34 @@ namespace details {
       query += column.m_name;
     }
     query += " FROM ";
-    query += statement.get_from_table();
-    if(statement.get_where() != std::nullopt) {
-      query += " WHERE ";
-      statement.get_where()->append_query(query);
+    auto& from = statement.get_clause().get_from();
+    if(auto t = std::get_if<std::string>(&from)) {
+      query += *t;
     }
-    if(statement.get_order() != std::nullopt &&
-        !statement.get_order()->m_columns.empty()) {
+    if(statement.get_clause().get_where() != std::nullopt) {
+      query += " WHERE ";
+      statement.get_clause().get_where()->append_query(query);
+    }
+    if(statement.get_clause().get_order() != std::nullopt &&
+        !statement.get_clause().get_order()->m_columns.empty()) {
       query += " ORDER BY ";
-      if(statement.get_order()->m_columns.size() == 1) {
-        query += statement.get_order()->m_columns.front();
+      if(statement.get_clause().get_order()->m_columns.size() == 1) {
+        query += statement.get_clause().get_order()->m_columns.front();
       } else {
         query += '(';
-        details::append_list(statement.get_order()->m_columns, query);
+        details::append_list(statement.get_clause().get_order()->m_columns,
+          query);
         query += ')';
       }
-      if(statement.get_order()->m_order == order::ASC) {
+      if(statement.get_clause().get_order()->m_order == order::ASC) {
         query += " ASC";
       } else {
         query += " DESC";
       }
     }
-    if(statement.get_limit() != std::nullopt) {
+    if(statement.get_clause().get_limit() != std::nullopt) {
       query += " LIMIT ";
-      query += std::to_string(statement.get_limit()->m_value);
+      query += std::to_string(statement.get_clause().get_limit()->m_value);
     }
     query += ';';
   }
