@@ -5,9 +5,9 @@
 namespace Viper {
 
   //! Base class of an SQL expression.
-  class virtual_expression {
+  class VirtualExpression {
     public:
-      virtual ~virtual_expression() = default;
+      virtual ~VirtualExpression() = default;
 
       //! Appends this expression to an SQL query string.
       virtual void append_query(std::string& query) const = 0;
@@ -15,11 +15,11 @@ namespace Viper {
     protected:
 
       //! Constructs a virtual expression.
-      virtual_expression() = default;
+      VirtualExpression() = default;
 
     private:
-      virtual_expression(const virtual_expression&) = delete;
-      virtual_expression& operator =(const virtual_expression&) = delete;
+      VirtualExpression(const VirtualExpression&) = delete;
+      VirtualExpression& operator =(const VirtualExpression&) = delete;
   };
 }
 

@@ -7,11 +7,11 @@
 namespace Viper {
 
   //! Implements an SQL expression representing an infix operator.
-  class infix_operator final : public virtual_expression {
+  class InfixOperator final : public VirtualExpression {
     public:
 
       //! Enumerates the types of infix operators.
-      enum class type {
+      enum class Type {
 
         //! left + right
         ADD,
@@ -56,52 +56,52 @@ namespace Viper {
         \param left The left hand side.
         \param right The right hand side.
       */
-      infix_operator(type t, expression left, expression right);
+      InfixOperator(Type t, Expression left, Expression right);
 
       void append_query(std::string& query) const override;
 
     private:
-      type m_type;
-      expression m_left;
-      expression m_right;
+      Type m_type;
+      Expression m_left;
+      Expression m_right;
   };
 
   //! Returns the symbol used to represent an infix operator.
-  inline const std::string& get_symbol(infix_operator::type t) {
-    if(t == infix_operator::type::ADD) {
+  inline const std::string& get_symbol(InfixOperator::Type t) {
+    if(t == InfixOperator::Type::ADD) {
       static const std::string SYMBOL = "+";
       return SYMBOL;
-    } else if(t == infix_operator::type::SUBTRACT) {
+    } else if(t == InfixOperator::Type::SUBTRACT) {
       static const std::string SYMBOL = "-";
       return SYMBOL;
-    } else if(t == infix_operator::type::MULTIPLY) {
+    } else if(t == InfixOperator::Type::MULTIPLY) {
       static const std::string SYMBOL = "*";
       return SYMBOL;
-    } else if(t == infix_operator::type::DIVIDE) {
+    } else if(t == InfixOperator::Type::DIVIDE) {
       static const std::string SYMBOL = "/";
       return SYMBOL;
-    } else if(t == infix_operator::type::LESS_THAN) {
+    } else if(t == InfixOperator::Type::LESS_THAN) {
       static const std::string SYMBOL = "<";
       return SYMBOL;
-    } else if(t == infix_operator::type::LESS_THAN_OR_EQUAL) {
+    } else if(t == InfixOperator::Type::LESS_THAN_OR_EQUAL) {
       static const std::string SYMBOL = "<=";
       return SYMBOL;
-    } else if(t == infix_operator::type::EQUAL) {
+    } else if(t == InfixOperator::Type::EQUAL) {
       static const std::string SYMBOL = "=";
       return SYMBOL;
-    } else if(t == infix_operator::type::NOT_EQUAL) {
+    } else if(t == InfixOperator::Type::NOT_EQUAL) {
       static const std::string SYMBOL = "<>";
       return SYMBOL;
-    } else if(t == infix_operator::type::GREATER_THAN_OR_EQUAL) {
+    } else if(t == InfixOperator::Type::GREATER_THAN_OR_EQUAL) {
       static const std::string SYMBOL = ">=";
       return SYMBOL;
-    } else if(t == infix_operator::type::GREATER_THAN) {
+    } else if(t == InfixOperator::Type::GREATER_THAN) {
       static const std::string SYMBOL = ">";
       return SYMBOL;
-    } else if(t == infix_operator::type::AND) {
+    } else if(t == InfixOperator::Type::AND) {
       static const std::string SYMBOL = "AND";
       return SYMBOL;
-    } else if(t == infix_operator::type::OR) {
+    } else if(t == InfixOperator::Type::OR) {
       static const std::string SYMBOL = "OR";
       return SYMBOL;
     } else {
@@ -114,9 +114,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator +(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::ADD, std::move(left), std::move(right)));
+  inline Expression operator +(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::ADD, std::move(left), std::move(right)));
   }
 
   //! Returns an expression representing addition.
@@ -125,9 +125,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator +(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::ADD, std::move(left), literal(right)));
+  Expression operator +(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::ADD, std::move(left), literal(right)));
   }
 
   //! Returns an expression representing addition.
@@ -136,9 +136,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator +(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::ADD, literal(left), std::move(right)));
+  Expression operator +(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::ADD, literal(left), std::move(right)));
   }
 
   //! Returns an expression representing subtraction.
@@ -146,20 +146,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator -(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::SUBTRACT, std::move(left), std::move(right)));
-  }
-
-  //! Returns an expression representing subtraction.
-  /*!
-    \param left The left hand side.
-    \param right The right hand side.
-  */
-  template<typename T>
-  expression operator -(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::SUBTRACT, std::move(left), literal(right)));
+  inline Expression operator -(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::SUBTRACT, std::move(left), std::move(right)));
   }
 
   //! Returns an expression representing subtraction.
@@ -168,9 +157,20 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator -(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::SUBTRACT, literal(left), std::move(right)));
+  Expression operator -(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::SUBTRACT, std::move(left), literal(right)));
+  }
+
+  //! Returns an expression representing subtraction.
+  /*!
+    \param left The left hand side.
+    \param right The right hand side.
+  */
+  template<typename T>
+  Expression operator -(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::SUBTRACT, literal(left), std::move(right)));
   }
 
   //! Returns an expression representing multiplication.
@@ -178,9 +178,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator *(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::MULTIPLY, std::move(left), std::move(right)));
+  inline Expression operator *(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::MULTIPLY, std::move(left), std::move(right)));
   }
 
   //! Returns an expression representing multiplication.
@@ -189,9 +189,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator *(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::MULTIPLY, std::move(left), literal(right)));
+  Expression operator *(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::MULTIPLY, std::move(left), literal(right)));
   }
 
   //! Returns an expression representing multiplication.
@@ -200,9 +200,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator *(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::MULTIPLY, literal(left), std::move(right)));
+  Expression operator *(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::MULTIPLY, literal(left), std::move(right)));
   }
 
   //! Returns an expression representing division.
@@ -210,20 +210,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator /(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::DIVIDE, std::move(left), std::move(right)));
-  }
-
-  //! Returns an expression representing division.
-  /*!
-    \param left The left hand side.
-    \param right The right hand side.
-  */
-  template<typename T>
-  expression operator /(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::DIVIDE, std::move(left), literal(right)));
+  inline Expression operator /(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::DIVIDE, std::move(left), std::move(right)));
   }
 
   //! Returns an expression representing division.
@@ -232,9 +221,20 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator /(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::DIVIDE, literal(left), std::move(right)));
+  Expression operator /(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::DIVIDE, std::move(left), literal(right)));
+  }
+
+  //! Returns an expression representing division.
+  /*!
+    \param left The left hand side.
+    \param right The right hand side.
+  */
+  template<typename T>
+  Expression operator /(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::DIVIDE, literal(left), std::move(right)));
   }
 
   //! Returns an expression representing less than.
@@ -242,9 +242,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator <(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::LESS_THAN, std::move(left), std::move(right)));
+  inline Expression operator <(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::LESS_THAN, std::move(left), std::move(right)));
   }
 
   //! Returns an expression representing less than.
@@ -253,9 +253,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator <(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::LESS_THAN, std::move(left), literal(right)));
+  Expression operator <(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::LESS_THAN, std::move(left), literal(right)));
   }
 
   //! Returns an expression representing less than.
@@ -264,9 +264,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator <(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::LESS_THAN, literal(left), std::move(right)));
+  Expression operator <(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::LESS_THAN, literal(left), std::move(right)));
   }
 
   //! Returns an expression representing less than or equal.
@@ -274,9 +274,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator <=(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::LESS_THAN_OR_EQUAL, std::move(left),
+  inline Expression operator <=(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::LESS_THAN_OR_EQUAL, std::move(left),
       std::move(right)));
   }
 
@@ -286,9 +286,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator <=(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::LESS_THAN_OR_EQUAL, std::move(left),
+  Expression operator <=(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::LESS_THAN_OR_EQUAL, std::move(left),
       literal(right)));
   }
 
@@ -298,9 +298,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator <=(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::LESS_THAN_OR_EQUAL, literal(left),
+  Expression operator <=(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::LESS_THAN_OR_EQUAL, literal(left),
       std::move(right)));
   }
 
@@ -309,9 +309,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator ==(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::EQUAL, std::move(left), std::move(right)));
+  inline Expression operator ==(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::EQUAL, std::move(left), std::move(right)));
   }
 
   //! Returns an expression representing equality.
@@ -320,9 +320,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator ==(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::EQUAL, std::move(left), literal(right)));
+  Expression operator ==(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::EQUAL, std::move(left), literal(right)));
   }
 
   //! Returns an expression representing equality.
@@ -331,9 +331,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator ==(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::EQUAL, literal(left), std::move(right)));
+  Expression operator ==(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::EQUAL, literal(left), std::move(right)));
   }
 
   //! Returns an expression representing inequality.
@@ -341,20 +341,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator !=(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::NOT_EQUAL, std::move(left), std::move(right)));
-  }
-
-  //! Returns an expression representing inequality.
-  /*!
-    \param left The left hand side.
-    \param right The right hand side.
-  */
-  template<typename T>
-  expression operator !=(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::NOT_EQUAL, std::move(left), literal(right)));
+  inline Expression operator !=(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::NOT_EQUAL, std::move(left), std::move(right)));
   }
 
   //! Returns an expression representing inequality.
@@ -363,9 +352,20 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator !=(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::NOT_EQUAL, literal(left), std::move(right)));
+  Expression operator !=(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::NOT_EQUAL, std::move(left), literal(right)));
+  }
+
+  //! Returns an expression representing inequality.
+  /*!
+    \param left The left hand side.
+    \param right The right hand side.
+  */
+  template<typename T>
+  Expression operator !=(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::NOT_EQUAL, literal(left), std::move(right)));
   }
 
   //! Returns an expression representing greater than or equal.
@@ -373,9 +373,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator >=(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::GREATER_THAN_OR_EQUAL, std::move(left),
+  inline Expression operator >=(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::GREATER_THAN_OR_EQUAL, std::move(left),
       std::move(right)));
   }
 
@@ -385,9 +385,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator >=(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::GREATER_THAN_OR_EQUAL, std::move(left),
+  Expression operator >=(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::GREATER_THAN_OR_EQUAL, std::move(left),
       literal(right)));
   }
 
@@ -397,9 +397,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator >=(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::GREATER_THAN_OR_EQUAL, literal(left),
+  Expression operator >=(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::GREATER_THAN_OR_EQUAL, literal(left),
       std::move(right)));
   }
 
@@ -408,9 +408,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator >(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::GREATER_THAN, std::move(left), std::move(right)));
+  inline Expression operator >(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::GREATER_THAN, std::move(left), std::move(right)));
   }
 
   //! Returns an expression representing greater than.
@@ -419,9 +419,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator >(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::GREATER_THAN, std::move(left), literal(right)));
+  Expression operator >(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::GREATER_THAN, std::move(left), literal(right)));
   }
 
   //! Returns an expression representing greater than.
@@ -430,9 +430,9 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator >(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::GREATER_THAN, literal(left), std::move(right)));
+  Expression operator >(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::GREATER_THAN, literal(left), std::move(right)));
   }
 
   //! Returns an expression representing logical and.
@@ -440,20 +440,9 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator &&(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::AND, std::move(left), std::move(right)));
-  }
-
-  //! Returns an expression representing logical and.
-  /*!
-    \param left The left hand side.
-    \param right The right hand side.
-  */
-  template<typename T>
-  expression operator &&(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::AND, std::move(left), literal(right)));
+  inline Expression operator &&(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::AND, std::move(left), std::move(right)));
   }
 
   //! Returns an expression representing logical and.
@@ -462,9 +451,20 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator &&(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(
-      infix_operator::type::AND, literal(left), std::move(right)));
+  Expression operator &&(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::AND, std::move(left), literal(right)));
+  }
+
+  //! Returns an expression representing logical and.
+  /*!
+    \param left The left hand side.
+    \param right The right hand side.
+  */
+  template<typename T>
+  Expression operator &&(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(
+      InfixOperator::Type::AND, literal(left), std::move(right)));
   }
 
   //! Returns an expression representing logical or.
@@ -472,8 +472,8 @@ namespace Viper {
     \param left The left hand side.
     \param right The right hand side.
   */
-  inline expression operator ||(expression left, expression right) {
-    return expression(std::make_shared<infix_operator>(infix_operator::type::OR,
+  inline Expression operator ||(Expression left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(InfixOperator::Type::OR,
       std::move(left), std::move(right)));
   }
 
@@ -483,8 +483,8 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator ||(expression left, const T& right) {
-    return expression(std::make_shared<infix_operator>(infix_operator::type::OR,
+  Expression operator ||(Expression left, const T& right) {
+    return Expression(std::make_shared<InfixOperator>(InfixOperator::Type::OR,
       std::move(left), literal(right)));
   }
 
@@ -494,18 +494,18 @@ namespace Viper {
     \param right The right hand side.
   */
   template<typename T>
-  expression operator ||(const T& left, expression right) {
-    return expression(std::make_shared<infix_operator>(infix_operator::type::OR,
+  Expression operator ||(const T& left, Expression right) {
+    return Expression(std::make_shared<InfixOperator>(InfixOperator::Type::OR,
       literal(left), std::move(right)));
   }
 
-  inline infix_operator::infix_operator(type t, expression left,
-      expression right)
+  inline InfixOperator::InfixOperator(Type t, Expression left,
+      Expression right)
       : m_type(t),
         m_left(std::move(left)),
         m_right(std::move(right)) {}
 
-  inline void infix_operator::append_query(std::string& query) const {
+  inline void InfixOperator::append_query(std::string& query) const {
     query += '(';
     m_left.append_query(query);
     query += " " + get_symbol(m_type) + " ";

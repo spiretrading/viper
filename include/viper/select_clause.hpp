@@ -101,7 +101,7 @@ namespace Viper {
       const from_clause& get_from() const;
 
       //! Returns the where clause.
-      const std::optional<expression>& get_where() const;
+      const std::optional<Expression>& get_where() const;
 
       //! Returns the order by clause.
       const std::optional<order>& get_order() const;
@@ -112,7 +112,7 @@ namespace Viper {
     private:
       std::vector<std::string> m_columns;
       from_clause m_from;
-      std::optional<expression> m_where;
+      std::optional<Expression> m_where;
       std::optional<order> m_order;
       std::optional<limit> m_limit;
   };
@@ -200,7 +200,7 @@ namespace Viper {
       from_clause from, C1&& c1)
       : m_columns(std::move(columns)),
         m_from(std::move(from)),
-        m_where(move_if<std::is_constructible_v<expression, C1&&>>(
+        m_where(move_if<std::is_constructible_v<Expression, C1&&>>(
           std::move(c1), std::nullopt)),
         m_order(move_if<std::is_constructible_v<order, C1&&>>(
           std::move(c1), std::nullopt)),
@@ -212,8 +212,8 @@ namespace Viper {
       from_clause from, C1&& c1, C2&& c2)
       : m_columns(std::move(columns)),
         m_from(std::move(from)),
-        m_where(move_if<std::is_constructible_v<expression, C1&&>,
-          std::is_constructible_v<expression, C2&&>>(std::move(c1),
+        m_where(move_if<std::is_constructible_v<Expression, C1&&>,
+          std::is_constructible_v<Expression, C2&&>>(std::move(c1),
           std::move(c2), std::nullopt)),
         m_order(move_if<std::is_constructible_v<order, C1&&>,
           std::is_constructible_v<order, C2&&>>(std::move(c1), std::move(c2),
@@ -227,9 +227,9 @@ namespace Viper {
       from_clause from, C1&& c1, C2&& c2, C3&& c3)
       : m_columns(std::move(columns)),
         m_from(std::move(from)),
-        m_where(move_if<std::is_constructible_v<expression, C1&&>,
-          std::is_constructible_v<expression, C2&&>,
-          std::is_constructible_v<expression, C3&&>>(std::move(c1),
+        m_where(move_if<std::is_constructible_v<Expression, C1&&>,
+          std::is_constructible_v<Expression, C2&&>,
+          std::is_constructible_v<Expression, C3&&>>(std::move(c1),
           std::move(c2), std::move(c3), std::nullopt)),
         m_order(move_if<std::is_constructible_v<order, C1&&>,
           std::is_constructible_v<order, C2&&>,
@@ -248,7 +248,7 @@ namespace Viper {
     return m_from;
   }
 
-  inline const std::optional<expression>& select_clause::get_where() const {
+  inline const std::optional<Expression>& select_clause::get_where() const {
     return m_where;
   }
 

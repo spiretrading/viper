@@ -6,14 +6,14 @@
 namespace Viper {
 
   //! Implements an SQL expression representing a literal value.
-  class literal_expression final : public virtual_expression {
+  class LiteralExpression final : public VirtualExpression {
     public:
 
       //! Constructs a literal expression.
       /*!
         \param value The value to represent.
       */
-      literal_expression(std::string value);
+      LiteralExpression(std::string value);
 
       void append_query(std::string& query) const override;
 
@@ -23,16 +23,16 @@ namespace Viper {
 
   //! Makes a literal expression from a raw value.
   template<typename T>
-  expression literal(const T& value) {
+  Expression literal(const T& value) {
     std::string v;
     convert_to_sql(value, v);
-    return expression(std::make_shared<literal_expression>(std::move(v)));
+    return Expression(std::make_shared<LiteralExpression>(std::move(v)));
   }
 
-  inline literal_expression::literal_expression(std::string value)
+  inline LiteralExpression::LiteralExpression(std::string value)
       : m_value(std::move(value)) {}
 
-  inline void literal_expression::append_query(std::string& query) const {
+  inline void LiteralExpression::append_query(std::string& query) const {
     query += m_value;
   }
 }

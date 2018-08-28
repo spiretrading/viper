@@ -8,29 +8,29 @@ namespace Viper {
 
   //! Represents an SQL expression that can be translated into an SQL query
   //! string.
-  class expression {
+  class Expression {
     public:
 
       //! Constructs an empty expression.
-      expression() = default;
+      Expression() = default;
 
       //! Constructs an expression from a polymorphic value.
       /*!
         \param e The value to encapsulate.
       */
-      expression(std::shared_ptr<virtual_expression> e);
+      Expression(std::shared_ptr<VirtualExpression> e);
 
       //! Appends this expression to an SQL query string.
       void append_query(std::string& query) const;
 
     private:
-      std::shared_ptr<virtual_expression> m_expression;
+      std::shared_ptr<VirtualExpression> m_expression;
   };
 
-  inline expression::expression(std::shared_ptr<virtual_expression> e)
+  inline Expression::Expression(std::shared_ptr<VirtualExpression> e)
       : m_expression(std::move(e)) {}
 
-  inline void expression::append_query(std::string& query) const {
+  inline void Expression::append_query(std::string& query) const {
     if(!m_expression) {
       return;
     }

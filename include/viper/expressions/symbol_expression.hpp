@@ -6,14 +6,14 @@
 namespace Viper {
 
   //! Implements an SQL expression representing a symbol.
-  class symbol_expression final : public virtual_expression {
+  class SymbolExpression final : public VirtualExpression {
     public:
 
       //! Constructs a symbol.
       /*!
         \param symbol The symbol to represent.
       */
-      symbol_expression(std::string symbol);
+      SymbolExpression(std::string symbol);
 
       void append_query(std::string& query) const override;
 
@@ -22,14 +22,14 @@ namespace Viper {
   };
 
   //! Makes a symbol.
-  inline expression sym(std::string symbol) {
-    return expression(std::make_shared<symbol_expression>(std::move(symbol)));
+  inline Expression sym(std::string symbol) {
+    return Expression(std::make_shared<SymbolExpression>(std::move(symbol)));
   }
 
-  inline symbol_expression::symbol_expression(std::string symbol)
+  inline SymbolExpression::SymbolExpression(std::string symbol)
       : m_symbol(std::move(symbol)) {}
 
-  inline void symbol_expression::append_query(std::string& query) const {
+  inline void SymbolExpression::append_query(std::string& query) const {
     query += m_symbol;
   }
 }
