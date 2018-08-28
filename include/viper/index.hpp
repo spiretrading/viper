@@ -6,7 +6,7 @@
 namespace Viper {
 
   //! Represents an SQL index.
-  struct index {
+  struct Index {
 
     //! The name of the index.
     std::string m_name;

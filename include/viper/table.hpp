@@ -17,20 +17,20 @@ namespace Viper {
       \tparam T The type used to represent a table row.
    */
   template<typename T>
-  class table {
+  class Table {
     public:
 
       //! The type used to represent a table row.
       using type = T;
 
       //! Constructs an empty table.
-      table();
+      Table();
 
       //! Returns the list of columns.
-      const std::vector<column>& get_columns() const;
+      const std::vector<Column>& get_columns() const;
 
       //! Returns the list of indexes (including the primary key).
-      const std::vector<index>& get_indexes() const;
+      const std::vector<Index>& get_indexes() const;
 
       //! Extracts an SQL row.
       /*!
@@ -53,7 +53,7 @@ namespace Viper {
         \param name The name of the column.
         \return A new table containing the column.
       */
-      table add_column(std::string name) const;
+      Table add_column(std::string name) const;
 
       //! Defines a column using getter and setter methods.
       /*!
@@ -63,7 +63,7 @@ namespace Viper {
         \return A new table containing the column.
       */
       template<typename G, typename S>
-      std::enable_if_t<std::is_invocable_v<G, const type&>, table> add_column(
+      std::enable_if_t<std::is_invocable_v<G, const type&>, Table> add_column(
         std::string name, G getter, S setter) const;
 
       //! Defines a column using getter and setter methods.
@@ -75,7 +75,7 @@ namespace Viper {
         \return A new table containing the column.
       */
       template<typename G, typename S>
-      std::enable_if_t<std::is_invocable_v<G, const type&>, table> add_column(
+      std::enable_if_t<std::is_invocable_v<G, const type&>, Table> add_column(
         std::string name, const DataType& t, G getter, S setter) const;
 
       //! Defines a column tied directly to a data member.
@@ -85,7 +85,7 @@ namespace Viper {
         \return A new table containing the column.
       */
       template<typename U, typename V = T>
-      std::enable_if_t<std::is_class_v<V>, table<V>> add_column(
+      std::enable_if_t<std::is_class_v<V>, Table<V>> add_column(
         std::string name, U V::* member) const;
 
       //! Defines a column tied directly to a data member.
@@ -96,7 +96,7 @@ namespace Viper {
         \return A new table containing the column.
       */
       template<typename U, typename V = T>
-      std::enable_if_t<std::is_class_v<V>, table<V>> add_column(
+      std::enable_if_t<std::is_class_v<V>, Table<V>> add_column(
         std::string name, const DataType& t, U V::* member) const;
 
       //! Sets the table's primary key.
@@ -104,21 +104,21 @@ namespace Viper {
         \param columns A column to use as the primary key.
         \return A new table containing the primary key.
       */
-      table set_primary_key(std::string column) const;
+      Table set_primary_key(std::string column) const;
 
       //! Sets the table's primary key.
       /*!
         \param columns A list of column names to use as the primary key.
         \return A new table containing the primary key.
       */
-      table set_primary_key(std::initializer_list<std::string> columns) const;
+      Table set_primary_key(std::initializer_list<std::string> columns) const;
 
       //! Sets the table's primary key.
       /*!
         \param columns A list of column names to use as the primary key.
         \return A new table containing the primary key.
       */
-      table set_primary_key(std::vector<std::string> columns) const;
+      Table set_primary_key(std::vector<std::string> columns) const;
 
       //! Adds an index.
       /*!
@@ -126,7 +126,7 @@ namespace Viper {
         \param column The column to use as an index.
         \return A new table containing the index.
       */
-      table add_index(std::string name, std::string column) const;
+      Table add_index(std::string name, std::string column) const;
 
       //! Adds an index.
       /*!
@@ -134,7 +134,7 @@ namespace Viper {
         \param columns A list of column names to use as an index.
         \return A new table containing the index.
       */
-      table add_index(std::string name,
+      Table add_index(std::string name,
         std::initializer_list<std::string> columns) const;
 
       //! Adds an index.
@@ -143,26 +143,26 @@ namespace Viper {
         \param columns A list of column names to use as an index.
         \return A new table containing the index.
       */
-      table add_index(std::string name, std::vector<std::string> columns) const;
+      Table add_index(std::string name, std::vector<std::string> columns) const;
 
     private:
-      struct accessors {
+      struct Accessors {
         std::function<void (const type& value, std::string& columns)> m_getter;
         std::function<void (type& value, const char** columns)> m_setter;
         int m_count;
 
-        accessors(std::function<void (const type& value, std::string& columns)>
+        Accessors(std::function<void (const type& value, std::string& columns)>
           getter, std::function<void (type& value, const char** columns)>
           setter, int count);
       };
-      struct data {
-        std::vector<column> m_columns;
-        std::vector<accessors> m_accessors;
-        std::vector<index> m_indexes;
+      struct Data {
+        std::vector<Column> m_columns;
+        std::vector<Accessors> m_accessors;
+        std::vector<Index> m_indexes;
       };
-      std::shared_ptr<data> m_data;
+      std::shared_ptr<Data> m_data;
 
-      table clone() const;
+      Table clone() const;
   };
 
   //! Makes a getter function from a class method.
@@ -220,7 +220,7 @@ namespace Viper {
   }
 
   template<typename T>
-  table<T>::accessors::accessors(
+  Table<T>::Accessors::Accessors(
       std::function<void (const type& value, std::string& columns)> getter,
       std::function<void (type& value, const char** columns)> setter, int count)
       : m_getter(std::move(getter)),
@@ -228,21 +228,21 @@ namespace Viper {
         m_count(count) {}
 
   template<typename T>
-  table<T>::table()
-      : m_data(std::make_shared<data>()) {}
+  Table<T>::Table()
+      : m_data(std::make_shared<Data>()) {}
 
   template<typename T>
-  const std::vector<column>& table<T>::get_columns() const {
+  const std::vector<Column>& Table<T>::get_columns() const {
     return m_data->m_columns;
   }
 
   template<typename T>
-  const std::vector<index>& table<T>::get_indexes() const {
+  const std::vector<Index>& Table<T>::get_indexes() const {
     return m_data->m_indexes;
   }
 
   template<typename T>
-  void table<T>::extract(const char** row, type& value) const {
+  void Table<T>::extract(const char** row, type& value) const {
     for(auto& accessor : m_data->m_accessors) {
       accessor.m_setter(value, row);
       ++row;
@@ -250,13 +250,13 @@ namespace Viper {
   }
 
   template<typename T>
-  void table<T>::append_value(const type& value, int column,
+  void Table<T>::append_value(const type& value, int column,
       std::string& query) const {
     m_data->m_accessors[column].m_getter(value, query);
   }
 
   template<typename T>
-  table<T> table<T>::add_column(std::string name) const {
+  Table<T> Table<T>::add_column(std::string name) const {
     return add_column(std::move(name),
       std::function<const type& (const type&)>(
         [] (const type& v) -> decltype(auto) {
@@ -270,15 +270,15 @@ namespace Viper {
 
   template<typename T>
   template<typename G, typename S>
-  std::enable_if_t<std::is_invocable_v<G, const T&>, table<T>>
-      table<T>::add_column(std::string name, G getter, S setter) const {
+  std::enable_if_t<std::is_invocable_v<G, const T&>, Table<T>>
+      Table<T>::add_column(std::string name, G getter, S setter) const {
     return add_column(std::move(name), native_to_data_type_v<G>,
       make_getter<T>(std::move(getter)), make_setter<T>(std::move(setter)));
   }
 
   template<typename T>
   template<typename G, typename S>
-  std::enable_if_t<std::is_invocable_v<G, const T&>, table<T>> table<T>::
+  std::enable_if_t<std::is_invocable_v<G, const T&>, Table<T>> Table<T>::
       add_column(std::string name, const DataType& t, G getter,
       S setter) const {
     auto r = clone();
@@ -286,11 +286,11 @@ namespace Viper {
     r.m_data->m_accessors.emplace_back(
       [getter = make_getter(std::forward<G>(getter))] (
           const type& value, std::string& columns) {
-        convert_to_sql(getter(value), columns);
+        to_sql(getter(value), columns);
       },
       [setter = make_setter(std::forward<S>(setter))] (
           type& value, const char** columns) {
-        setter(value, convert_from_sql<get_argument_t<S>>(columns[0]));
+        setter(value, from_sql<get_argument_t<S>>(columns[0]));
       },
       1);
     return r;
@@ -298,33 +298,33 @@ namespace Viper {
 
   template<typename T>
   template<typename U, typename V>
-  std::enable_if_t<std::is_class_v<V>, table<V>> table<T>::add_column(
+  std::enable_if_t<std::is_class_v<V>, Table<V>> Table<T>::add_column(
       std::string name, U V::* member) const {
     return add_column(std::move(name), native_to_data_type_v<U>, member);
   }
 
   template<typename T>
   template<typename U, typename V>
-  std::enable_if_t<std::is_class_v<V>, table<V>> table<T>::add_column(
+  std::enable_if_t<std::is_class_v<V>, Table<V>> Table<T>::add_column(
       std::string name, const DataType& t, U V::* member) const {
     return add_column(std::move(name), t, make_getter(member),
       make_setter(member));
   }
 
   template<typename T>
-  table<T> table<T>::set_primary_key(std::string column) const {
+  Table<T> Table<T>::set_primary_key(std::string column) const {
     return set_primary_key({column});
   }
 
   template<typename T>
-  table<T> table<T>::set_primary_key(
+  Table<T> Table<T>::set_primary_key(
       std::initializer_list<std::string> columns) const {
     return set_primary_key(std::vector<std::string>{columns});
   }
 
   template<typename T>
-  table<T> table<T>::set_primary_key(std::vector<std::string> columns) const {
-    index i;
+  Table<T> Table<T>::set_primary_key(std::vector<std::string> columns) const {
+    Index i;
     i.m_columns = std::move(columns);
     i.m_is_primary = true;
     i.m_is_unique = true;
@@ -337,20 +337,20 @@ namespace Viper {
   }
 
   template<typename T>
-  table<T> table<T>::add_index(std::string name, std::string column) const {
+  Table<T> Table<T>::add_index(std::string name, std::string column) const {
     return add_index(std::move(name), {column});
   }
 
   template<typename T>
-  table<T> table<T>::add_index(std::string name,
+  Table<T> Table<T>::add_index(std::string name,
       std::initializer_list<std::string> columns) const {
     return add_index(std::move(name), std::vector<std::string>{columns});
   }
 
   template<typename T>
-  table<T> table<T>::add_index(std::string name,
+  Table<T> Table<T>::add_index(std::string name,
       std::vector<std::string> columns) const {
-    index i;
+    Index i;
     i.m_name = std::move(name);
     i.m_columns = std::move(columns);
     auto r = clone();
@@ -359,8 +359,8 @@ namespace Viper {
   }
 
   template<typename T>
-  table<T> table<T>::clone() const {
-    table r;
+  Table<T> Table<T>::clone() const {
+    Table r;
     *r.m_data = *m_data;
     return r;
   }

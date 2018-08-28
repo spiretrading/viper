@@ -29,21 +29,21 @@ namespace Viper::Sqlite3 {
         \param s The statement to execute.
       */
       template<typename T>
-      void execute(const create_table_statement<T>& s);
+      void execute(const CreateTableStatement<T>& s);
 
       //! Executes an insert range statement.
       /*!
         \param s The statement to execute.
       */
       template<typename T, typename B, typename E>
-      void execute(const insert_range_statement<T, B, E>& s);
+      void execute(const InsertRangeStatement<T, B, E>& s);
 
       //! Executes a select statement.
       /*!
         \param s The statement to execute.
       */
       template<typename T, typename D>
-      void execute(const select_statement<T, D>& s);
+      void execute(const SelectStatement<T, D>& s);
 
       //! Opens a connection to the SQLite database.
       void open();
@@ -65,7 +65,7 @@ namespace Viper::Sqlite3 {
   }
 
   template<typename T>
-  void Connection::execute(const create_table_statement<T>& s) {
+  void Connection::execute(const CreateTableStatement<T>& s) {
     std::string query;
     build_query(s, query);
     char* error;
@@ -74,12 +74,12 @@ namespace Viper::Sqlite3 {
     if(result != SQLITE_OK) {
       std::string err = error;
       ::sqlite3_free(error);
-      throw execute_exception(err);
+      throw ExecuteException(err);
     }
   }
 
   template<typename T, typename B, typename E>
-  void Connection::execute(const insert_range_statement<T, B, E>& s) {
+  void Connection::execute(const InsertRangeStatement<T, B, E>& s) {
     std::string query;
     build_query(s, query);
     char* error;
@@ -88,22 +88,22 @@ namespace Viper::Sqlite3 {
     if(result != SQLITE_OK) {
       std::string err = error;
       ::sqlite3_free(error);
-      throw execute_exception(err);
+      throw ExecuteException(err);
     }
   }
 
   template<typename T, typename D>
-  void Connection::execute(const select_statement<T, D>& s) {
+  void Connection::execute(const SelectStatement<T, D>& s) {
     std::string query;
     build_query(s, query);
     struct closure {
-      const select_statement<T, D>* m_statement;
-      typename select_statement<T, D>::destination m_destination;
+      const SelectStatement<T, D>* m_statement;
+      typename SelectStatement<T, D>::destination m_destination;
     };
     closure c{&s, s.get_first()};
     auto callback = [] (void* data, int count, char** values, char** names) {
       auto& c = *reinterpret_cast<closure*>(data);
-      typename select_statement<T, D>::result_table::type value;
+      typename SelectStatement<T, D>::result_table::type value;
       c.m_statement->get_result_table().extract(
         const_cast<const char**>(values), value);
       c.m_destination = std::move(value);
@@ -116,7 +116,7 @@ namespace Viper::Sqlite3 {
     if(result != SQLITE_OK) {
       std::string err = error;
       ::sqlite3_free(error);
-      throw execute_exception(err);
+      throw ExecuteException(err);
     }
   }
 
@@ -129,7 +129,7 @@ namespace Viper::Sqlite3 {
       auto message = ::sqlite3_errmsg(m_handle);
       ::sqlite3_close(m_handle);
       m_handle = nullptr;
-      throw connect_exception(message);
+      throw ConnectException(message);
     }
   }
 

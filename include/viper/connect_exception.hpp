@@ -5,7 +5,7 @@
 namespace Viper {
 
   //! Indicates a failure to connect to an SQL database.
-  class connect_exception : public std::runtime_error {
+  class ConnectException : public std::runtime_error {
     public:
       using runtime_error::runtime_error;
   };

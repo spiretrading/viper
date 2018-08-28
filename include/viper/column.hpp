@@ -8,7 +8,7 @@
 namespace Viper {
 
   //! Represents an SQL column.
-  struct column {
+  struct Column {
 
     //! The name of the column.
     std::string m_name;
@@ -25,10 +25,10 @@ namespace Viper {
       \param type The column's data type.
       \param is_nullable Whether the column is nullable.
     */
-    column(std::string name, const DataType& type, bool is_nullable);
+    Column(std::string name, const DataType& type, bool is_nullable);
   };
 
-  inline column::column(std::string name, const DataType& type,
+  inline Column::Column(std::string name, const DataType& type,
       bool is_nullable)
       : m_name(std::move(name)),
         m_type(type.clone()),

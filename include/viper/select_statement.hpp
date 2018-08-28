@@ -10,14 +10,14 @@ namespace Viper {
       \tparam D The output iterator to store the rows in.
    */
   template<typename T, typename D>
-  class select_statement {
+  class SelectStatement {
     public:
 
       //! The type of the result table.
-      using result_table = T;
+      using ResultTable = T;
 
       //! The output iterator to store the rows in.
-      using destination = D;
+      using Destination = D;
 
       //! Constructs a select statement.
       /*!
@@ -25,21 +25,21 @@ namespace Viper {
         \param clause The select clause to execute.
         \param first An output iterator used to store the rows.
       */
-      select_statement(result_table r, select_clause clause, destination first);
+      SelectStatement(ResultTable r, SelectClause clause, Destination first);
 
       //! Returns the result table.
-      const result_table& get_result_table() const;
+      const ResultTable& get_result_table() const;
 
       //! Returns the select clause.
-      const select_clause& get_clause() const;
+      const SelectClause& get_clause() const;
 
       //! Returns the destination iterator.
-      destination get_first() const;
+      Destination get_first() const;
 
     private:
-      result_table m_result_table;
-      select_clause m_clause;
-      destination m_first;
+      ResultTable m_result_table;
+      SelectClause m_clause;
+      Destination m_first;
   };
 
   //! Builds a select statement.
@@ -49,12 +49,12 @@ namespace Viper {
     \param first An output iterator used to store the rows.
   */
   template<typename T, typename D>
-  auto select(table<T> r, from_clause from, D first) {
+  auto select(Table<T> r, FromClause from, D first) {
     std::vector<std::string> columns;
     for(auto& c : r.get_columns()) {
       columns.push_back(c.m_name);
     }
-    return select_statement(std::move(r), select(std::move(columns),
+    return SelectStatement(std::move(r), select(std::move(columns),
       std::move(from)), std::move(first));
   }
 
@@ -66,12 +66,12 @@ namespace Viper {
     \param first An output iterator used to store the rows.
   */
   template<typename T, typename D, typename C1>
-  auto select(table<T> r, from_clause from, C1&& c1, D first) {
+  auto select(Table<T> r, FromClause from, C1&& c1, D first) {
     std::vector<std::string> columns;
     for(auto& c : r.get_columns()) {
       columns.push_back(c.m_name);
     }
-    return select_statement(std::move(r), select(std::move(columns),
+    return SelectStatement(std::move(r), select(std::move(columns),
       std::move(from), std::move(c1)), std::move(first));
   }
 
@@ -84,12 +84,12 @@ namespace Viper {
     \param first An output iterator used to store the rows.
   */
   template<typename T, typename D, typename C1, typename C2>
-  auto select(table<T> r, from_clause from, C1&& c1, C2&& c2, D first) {
+  auto select(Table<T> r, FromClause from, C1&& c1, C2&& c2, D first) {
     std::vector<std::string> columns;
     for(auto& c : r.get_columns()) {
       columns.push_back(c.m_name);
     }
-    return select_statement(std::move(r), select(std::move(columns),
+    return SelectStatement(std::move(r), select(std::move(columns),
       std::move(from), std::move(c1), std::move(c2)), std::move(first));
   }
 
@@ -103,38 +103,38 @@ namespace Viper {
     \param first An output iterator used to store the rows.
   */
   template<typename T, typename D, typename C1, typename C2, typename C3>
-  auto select(table<T> r, from_clause from, C1&& c1, C2&& c2, C3&& c3,
+  auto select(Table<T> r, FromClause from, C1&& c1, C2&& c2, C3&& c3,
       D first) {
     std::vector<std::string> columns;
     for(auto& c : r.get_columns()) {
       columns.push_back(c.m_name);
     }
-    return select_statement(std::move(r), select(std::move(columns),
+    return SelectStatement(std::move(r), select(std::move(columns),
       std::move(from), std::move(c1), std::move(c2), std::move(c3)),
       std::move(first));
   }
 
   template<typename T, typename D>
-  select_statement<T, D>::select_statement(result_table r, select_clause clause,
-      destination first)
+  SelectStatement<T, D>::SelectStatement(ResultTable r, SelectClause clause,
+      Destination first)
       : m_result_table(std::move(r)),
         m_clause(std::move(clause)),
         m_first(std::move(first)) {}
 
   template<typename T, typename D>
-  const typename select_statement<T, D>::result_table&
-      select_statement<T, D>::get_result_table() const {
+  const typename SelectStatement<T, D>::ResultTable&
+      SelectStatement<T, D>::get_result_table() const {
     return m_result_table;
   }
 
   template<typename T, typename D>
-  const select_clause& select_statement<T, D>::get_clause() const {
+  const SelectClause& SelectStatement<T, D>::get_clause() const {
     return m_clause;
   }
 
   template<typename T, typename D>
-  typename select_statement<T, D>::destination
-      select_statement<T, D>::get_first() const {
+  typename SelectStatement<T, D>::Destination
+      SelectStatement<T, D>::get_first() const {
     return m_first;
   }
 }

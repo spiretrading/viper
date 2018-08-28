@@ -25,7 +25,7 @@ namespace Viper {
   template<typename T>
   Expression literal(const T& value) {
     std::string v;
-    convert_to_sql(value, v);
+    to_sql(value, v);
     return Expression(std::make_shared<LiteralExpression>(std::move(v)));
   }
 

@@ -12,17 +12,17 @@ namespace Viper {
       \tparam E The type of input iterator to the end of the range to insert.
    */
   template<typename T, typename B, typename E>
-  class insert_range_statement {
+  class InsertRangeStatement {
     public:
 
       //! The type of table to insert into.
-      using table = T;
+      using Table = T;
 
       //! The type of input iterator to the beginning of the range to insert.
-      using begin_t = B;
+      using Begin = B;
 
       //! The type of input iterator to the end of the range to insert.
-      using end_t = E;
+      using End = E;
 
       //! Constructs an insert range statement.
       /*!
@@ -31,26 +31,25 @@ namespace Viper {
         \param begin An input iterator to the beginning of the range to insert.
         \param end An input iterator to the end of the range to insert.
       */
-      insert_range_statement(table t, std::string into, begin_t begin,
-        end_t end);
+      InsertRangeStatement(Table t, std::string into, Begin begin, End end);
 
       //! Returns the table to insert into.
-      const table& get_from_table() const;
+      const Table& get_from_table() const;
 
       //! Returns the table to insert into.
       const std::string& get_into_table() const;
 
       //! Returns the begin iterator.
-      begin_t get_begin() const;
+      Begin get_begin() const;
 
       //! Returns the end iterator.
-      end_t get_end() const;
+      End get_end() const;
 
     private:
-      table m_table;
+      Table m_table;
       std::string m_into_table;
-      begin_t m_begin;
-      end_t m_end;
+      Begin m_begin;
+      End m_end;
   };
 
   //! Builds an insert range statement.
@@ -62,38 +61,38 @@ namespace Viper {
   */
   template<typename T, typename B, typename E>
   auto insert(T t, std::string into, B begin, E end) {
-    return insert_range_statement(std::move(t), std::move(into),
+    return InsertRangeStatement(std::move(t), std::move(into),
       std::move(begin), std::move(end));
   }
 
   template<typename T, typename B, typename E>
-  insert_range_statement<T, B, E>::insert_range_statement(table t,
-      std::string into, begin_t begin, end_t end)
+  InsertRangeStatement<T, B, E>::InsertRangeStatement(Table t, std::string into,
+      Begin begin, End end)
       : m_table(std::move(t)),
         m_into_table(std::move(into)),
         m_begin(std::move(begin)),
         m_end(std::move(end)) {}
 
   template<typename T, typename B, typename E>
-  const typename insert_range_statement<T, B, E>::table&
-      insert_range_statement<T, B, E>::get_from_table() const {
+  const typename InsertRangeStatement<T, B, E>::Table&
+      InsertRangeStatement<T, B, E>::get_from_table() const {
     return m_table;
   }
 
   template<typename T, typename B, typename E>
-  const std::string& insert_range_statement<T, B, E>::get_into_table() const {
+  const std::string& InsertRangeStatement<T, B, E>::get_into_table() const {
     return m_into_table;
   }
 
   template<typename T, typename B, typename E>
-  typename insert_range_statement<T, B, E>::begin_t
-      insert_range_statement<T, B, E>::get_begin() const {
+  typename InsertRangeStatement<T, B, E>::Begin
+      InsertRangeStatement<T, B, E>::get_begin() const {
     return m_begin;
   }
 
   template<typename T, typename B, typename E>
-  typename insert_range_statement<T, B, E>::end_t
-      insert_range_statement<T, B, E>::get_end() const {
+  typename InsertRangeStatement<T, B, E>::End
+      InsertRangeStatement<T, B, E>::get_end() const {
     return m_end;
   }
 }

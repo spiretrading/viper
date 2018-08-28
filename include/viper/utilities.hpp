@@ -3,7 +3,7 @@
 #include <utility>
 
 namespace Viper {
-namespace details {
+namespace Details {
   template<bool C>
   struct move_if_s {};
 
@@ -32,7 +32,7 @@ namespace details {
   */
   template<bool C, typename T1, typename T2>
   decltype(auto) move_if(T1&& a, T2&& b) {
-    return details::move_if_s<C>()(std::forward<T1>(a), std::forward<T2>(b));
+    return Details::move_if_s<C>()(std::forward<T1>(a), std::forward<T2>(b));
   }
 
   //! Moves a value depending on a series of compile-time conditions.

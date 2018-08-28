@@ -9,11 +9,11 @@ namespace Viper {
       \tparam T The type of table to create.
    */
   template<typename T>
-  class create_table_statement {
+  class CreateTableStatement {
     public:
 
       //! The type of table to create.
-      using table = T;
+      using Table = T;
 
       //! Constructs a create table statement.
       /*!
@@ -21,10 +21,10 @@ namespace Viper {
         \param name The name of the table.
         \param exists_flag Only create the table if it doesn't exist.
       */
-      create_table_statement(table t, std::string name, bool exists_flag);
+      CreateTableStatement(Table t, std::string name, bool exists_flag);
 
       //! Returns the table to create.
-      const table& get_table() const;
+      const Table& get_table() const;
 
       //! Returns the name of the table.
       const std::string& get_name() const;
@@ -33,7 +33,7 @@ namespace Viper {
       bool get_exists_flag() const;
 
     private:
-      table m_table;
+      Table m_table;
       std::string m_name;
       bool m_exists_flag;
   };
@@ -44,8 +44,8 @@ namespace Viper {
     \param name The name of the table.
   */
   template<typename T>
-  auto create(table<T> t, std::string name) {
-    return create_table_statement(std::move(t), std::move(name), false);
+  auto create(Table<T> t, std::string name) {
+    return CreateTableStatement(std::move(t), std::move(name), false);
   }
 
   //! Builds a create table statement if it doesn't already exist.
@@ -54,30 +54,30 @@ namespace Viper {
     \param name The name of the table.
   */
   template<typename T>
-  auto create_if_not_exists(table<T> t, std::string name) {
-    return create_table_statement(std::move(t), std::move(name), true);
+  auto create_if_not_exists(Table<T> t, std::string name) {
+    return CreateTableStatement(std::move(t), std::move(name), true);
   }
 
   template<typename T>
-  create_table_statement<T>::create_table_statement(table t, std::string name,
+  CreateTableStatement<T>::CreateTableStatement(Table t, std::string name,
       bool exists_flag)
       : m_table(std::move(t)),
         m_name(std::move(name)),
         m_exists_flag(exists_flag) {}
 
   template<typename T>
-  const typename create_table_statement<T>::table&
-      create_table_statement<T>::get_table() const {
+  const typename CreateTableStatement<T>::Table&
+      CreateTableStatement<T>::get_table() const {
     return m_table;
   }
 
   template<typename T>
-  const std::string& create_table_statement<T>::get_name() const {
+  const std::string& CreateTableStatement<T>::get_name() const {
     return m_name;
   }
 
   template<typename T>
-  bool create_table_statement<T>::get_exists_flag() const {
+  bool CreateTableStatement<T>::get_exists_flag() const {
     return m_exists_flag;
   }
 }

@@ -8,7 +8,7 @@
 #include "viper/sqlite/data_type_name.hpp"
 
 namespace Viper::Sqlite3 {
-namespace details {
+namespace Details {
   template<typename B, typename E, typename F>
   void append_list(B b, E e, std::string& query, F&& f) {
     auto prepend_comma = false;
@@ -41,14 +41,14 @@ namespace details {
     \param query The string to store the query in.
   */
   template<typename T>
-  void build_query(const create_table_statement<T>& statement,
+  void build_query(const CreateTableStatement<T>& statement,
       std::string& query) {
     query += "BEGIN;CREATE TABLE ";
     if(statement.get_exists_flag()) {
       query += "IF NOT EXISTS ";
     }
     query += statement.get_name() + '(';
-    details::append_list(statement.get_table().get_columns(), query,
+    Details::append_list(statement.get_table().get_columns(), query,
       [] (auto& column, auto& query) {
         query += column.m_name + ' ' + get_name(*column.m_type);
         if(!column.m_is_nullable) {
@@ -58,7 +58,7 @@ namespace details {
     if(!statement.get_table().get_indexes().empty() &&
         statement.get_table().get_indexes().front().m_is_primary) {
       query += ",PRIMARY KEY(";
-      details::append_list(
+      Details::append_list(
         statement.get_table().get_indexes().front().m_columns, query);
       query += ')';
     }
@@ -74,7 +74,7 @@ namespace details {
       }
       query += " IF NOT EXISTS " + current_index.m_name + " ON " +
         statement.get_name() + "(";
-      details::append_list(current_index.m_columns, query);
+      Details::append_list(current_index.m_columns, query);
       query += ");";
     }
     query += "COMMIT;";
@@ -86,7 +86,7 @@ namespace details {
     \param query The string to store the query in.
   */
   template<typename T, typename B, typename E>
-  void build_query(const insert_range_statement<T, B, E>& statement,
+  void build_query(const InsertRangeStatement<T, B, E>& statement,
       std::string& query) {
     if(statement.get_begin() == statement.get_end()) {
       return;
@@ -94,12 +94,12 @@ namespace details {
     query += "INSERT INTO ";
     query += statement.get_into_table();
     query += " (";
-    details::append_list(statement.get_from_table().get_columns(), query,
+    Details::append_list(statement.get_from_table().get_columns(), query,
       [] (auto& column, auto& query) {
         query += column.m_name;
       });
     query += ") VALUES ";
-    details::append_list(statement.get_begin(), statement.get_end(), query,
+    Details::append_list(statement.get_begin(), statement.get_end(), query,
       [] (auto& column, auto& query) {
         query += '(';
         auto prepend_comma = false;
@@ -121,14 +121,14 @@ namespace details {
     \param clause The clause to build.
     \param query The string to store the query in.
   */
-  inline void build_query(const select_clause& clause, std::string& query) {
+  inline void build_query(const SelectClause& clause, std::string& query) {
     query += "SELECT ";
-    details::append_list(clause.get_columns(), query);
+    Details::append_list(clause.get_columns(), query);
     query += " FROM ";
     auto& from = clause.get_from();
     if(auto t = std::get_if<std::string>(&from)) {
       query += *t;
-    } else if(auto t = std::get_if<std::shared_ptr<select_clause>>(&from)) {
+    } else if(auto t = std::get_if<std::shared_ptr<SelectClause>>(&from)) {
       query += '(';
       build_query(**t, query);
       query += ") AS alias";
@@ -144,10 +144,10 @@ namespace details {
         query += clause.get_order()->m_columns.front();
       } else {
         query += '(';
-        details::append_list(clause.get_order()->m_columns, query);
+        Details::append_list(clause.get_order()->m_columns, query);
         query += ')';
       }
-      if(clause.get_order()->m_order == order::ASC) {
+      if(clause.get_order()->m_order == Order::ASC) {
         query += " ASC";
       } else {
         query += " DESC";
@@ -165,7 +165,7 @@ namespace details {
     \param query The string to store the query in.
   */
   template<typename T, typename D>
-  void build_query(const select_statement<T, D>& statement,
+  void build_query(const SelectStatement<T, D>& statement,
       std::string& query) {
     build_query(statement.get_clause(), query);
     query += ';';

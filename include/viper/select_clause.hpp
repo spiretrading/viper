@@ -10,19 +10,24 @@
 #include "viper/utilities.hpp"
 
 namespace Viper {
-  class select_clause;
+  class SelectClause;
 
   //! Represents a limit on the number of rows produced by a query.
-  struct limit {
+  struct Limit {
 
     //! The maximum number of rows to return.
     int m_value;
 
-    limit(int value);
+    Limit(int value);
   };
 
+  //! Returns a limit on the number of rows produced by a query.
+  inline auto limit(int value) {
+    return Limit(value);
+  }
+
   //! Represents the order in which results are returned.
-  struct order {
+  struct Order {
 
     //! Rows are in ascending (increasing) order.
     static constexpr auto ASC = 0;
@@ -36,22 +41,21 @@ namespace Viper {
     //! The order of the rows.
     int m_order;
 
-    order(std::vector<std::string> columns, int o);
+    Order(std::vector<std::string> columns, int order);
   };
 
   //! Represents a SELECT query's from clause.
-  struct from_clause :
-      std::variant<std::string, std::shared_ptr<select_clause>> {
-    using variant = std::variant<std::string, std::shared_ptr<select_clause>>;
+  struct FromClause : std::variant<std::string, std::shared_ptr<SelectClause>> {
+    using variant = std::variant<std::string, std::shared_ptr<SelectClause>>;
 
     using variant::variant;
 
     //! Constructs a recursive select clause.
-    from_clause(select_clause s);
+    FromClause(SelectClause s);
   };
 
   //! Represents an SQL SELECT sub-query/clause.
-  class select_clause {
+  class SelectClause {
     public:
 
       //! Constructs a select clause.
@@ -59,7 +63,7 @@ namespace Viper {
         \param columns The list of columns to select.
         \param from The table to select from.
       */
-      select_clause(std::vector<std::string> columns, from_clause from);
+      SelectClause(std::vector<std::string> columns, FromClause from);
 
       //! Constructs a select statement with a single optional clause.
       /*!
@@ -68,8 +72,7 @@ namespace Viper {
         \param c1 The first clause to include.
       */
       template<typename C1>
-      select_clause(std::vector<std::string> columns, from_clause from,
-        C1&& c1);
+      SelectClause(std::vector<std::string> columns, FromClause from, C1&& c1);
 
       //! Constructs a select statement with a two optional clauses.
       /*!
@@ -79,7 +82,7 @@ namespace Viper {
         \param c2 The second clause to include.
       */
       template<typename C1, typename C2>
-      select_clause(std::vector<std::string> columns, from_clause from, C1&& c1,
+      SelectClause(std::vector<std::string> columns, FromClause from, C1&& c1,
         C2&& c2);
 
       //! Constructs a select statement with a three optional clauses.
@@ -91,39 +94,39 @@ namespace Viper {
         \param c3 The third clause to include.
       */
       template<typename C1, typename C2, typename C3>
-      select_clause(std::vector<std::string> columns, from_clause from, C1&& c1,
+      SelectClause(std::vector<std::string> columns, FromClause from, C1&& c1,
         C2&& c2, C3&& c3);
 
       //! Returns the list columns being selected.
       const std::vector<std::string>& get_columns() const;
 
       //! Returns the table to select from.
-      const from_clause& get_from() const;
+      const FromClause& get_from() const;
 
       //! Returns the where clause.
       const std::optional<Expression>& get_where() const;
 
       //! Returns the order by clause.
-      const std::optional<order>& get_order() const;
+      const std::optional<Order>& get_order() const;
 
       //! Returns the limit.
-      const std::optional<limit>& get_limit() const;
+      const std::optional<Limit>& get_limit() const;
 
     private:
       std::vector<std::string> m_columns;
-      from_clause m_from;
+      FromClause m_from;
       std::optional<Expression> m_where;
-      std::optional<order> m_order;
-      std::optional<limit> m_limit;
+      std::optional<Order> m_order;
+      std::optional<Limit> m_limit;
   };
 
   //! Builds an ORDER BY clause.
-  inline order order_by(std::vector<std::string> columns, int o) {
-    return order(std::move(columns), o);
+  inline Order order_by(std::vector<std::string> columns, int o) {
+    return Order(std::move(columns), o);
   }
 
   //! Builds an ORDER BY clause.
-  inline order order_by(std::string_view column, int o) {
+  inline Order order_by(std::string_view column, int o) {
     std::vector<std::string> c;
     c.emplace_back(column);
     return order_by(std::move(c), o);
@@ -134,9 +137,9 @@ namespace Viper {
     \param columns The list of columns to select.
     \param from The table to select from.
   */
-  inline select_clause select(std::vector<std::string> columns,
-      from_clause from) {
-    return select_clause(std::move(columns), std::move(from));
+  inline SelectClause select(std::vector<std::string> columns,
+      FromClause from) {
+    return SelectClause(std::move(columns), std::move(from));
   }
 
   //! Builds a select clause with a single optional clause.
@@ -146,9 +149,9 @@ namespace Viper {
     \param c1 The first clause.
   */
   template<typename C1>
-  select_clause select(std::vector<std::string> columns, from_clause from,
+  SelectClause select(std::vector<std::string> columns, FromClause from,
       C1&& c1) {
-    return select_clause(std::move(columns), std::move(from), std::move(c1));
+    return SelectClause(std::move(columns), std::move(from), std::move(c1));
   }
 
   //! Builds a select statement with two optional clauses.
@@ -159,9 +162,9 @@ namespace Viper {
     \param c2 The second clause.
   */
   template<typename C1, typename C2>
-  select_clause select(std::vector<std::string> columns, from_clause from,
+  SelectClause select(std::vector<std::string> columns, FromClause from,
       C1&& c1, C2&& c2) {
-    return select_clause(std::move(columns), std::move(from), std::move(c1),
+    return SelectClause(std::move(columns), std::move(from), std::move(c1),
       std::move(c2));
   }
 
@@ -174,89 +177,89 @@ namespace Viper {
     \param c3 The third clause.
   */
   template<typename C1, typename C2, typename C3>
-  select_clause select(std::vector<std::string> columns, from_clause from,
+  SelectClause select(std::vector<std::string> columns, FromClause from,
       C1&& c1, C2&& c2, C3&& c3) {
-    return select_clause(std::move(columns), std::move(from), std::move(c1),
+    return SelectClause(std::move(columns), std::move(from), std::move(c1),
       std::move(c2), std::move(c3));
   }
 
-  inline limit::limit(int value)
+  inline Limit::Limit(int value)
       : m_value(value) {}
 
-  inline order::order(std::vector<std::string> columns, int o)
+  inline Order::Order(std::vector<std::string> columns, int o)
       : m_columns(std::move(columns)),
         m_order(o) {}
 
-  inline from_clause::from_clause(select_clause s)
-      : variant(std::make_shared<select_clause>(s)) {}
+  inline FromClause::FromClause(SelectClause s)
+      : variant(std::make_shared<SelectClause>(s)) {}
 
-  inline select_clause::select_clause(std::vector<std::string> columns,
-      from_clause from)
+  inline SelectClause::SelectClause(std::vector<std::string> columns,
+      FromClause from)
       : m_columns(std::move(columns)),
         m_from(std::move(from)) {}
 
   template<typename C1>
-  select_clause::select_clause(std::vector<std::string> columns,
-      from_clause from, C1&& c1)
+  SelectClause::SelectClause(std::vector<std::string> columns,
+      FromClause from, C1&& c1)
       : m_columns(std::move(columns)),
         m_from(std::move(from)),
         m_where(move_if<std::is_constructible_v<Expression, C1&&>>(
           std::move(c1), std::nullopt)),
-        m_order(move_if<std::is_constructible_v<order, C1&&>>(
+        m_order(move_if<std::is_constructible_v<Order, C1&&>>(
           std::move(c1), std::nullopt)),
-        m_limit(move_if<std::is_constructible_v<limit, C1&&>>(
+        m_limit(move_if<std::is_constructible_v<Limit, C1&&>>(
           std::move(c1), std::nullopt)) {}
 
   template<typename C1, typename C2>
-  select_clause::select_clause(std::vector<std::string> columns,
-      from_clause from, C1&& c1, C2&& c2)
+  SelectClause::SelectClause(std::vector<std::string> columns,
+      FromClause from, C1&& c1, C2&& c2)
       : m_columns(std::move(columns)),
         m_from(std::move(from)),
         m_where(move_if<std::is_constructible_v<Expression, C1&&>,
           std::is_constructible_v<Expression, C2&&>>(std::move(c1),
           std::move(c2), std::nullopt)),
-        m_order(move_if<std::is_constructible_v<order, C1&&>,
-          std::is_constructible_v<order, C2&&>>(std::move(c1), std::move(c2),
+        m_order(move_if<std::is_constructible_v<Order, C1&&>,
+          std::is_constructible_v<Order, C2&&>>(std::move(c1), std::move(c2),
           std::nullopt)),
-        m_limit(move_if<std::is_constructible_v<limit, C1&&>,
-          std::is_constructible_v<limit, C2&&>>(std::move(c1), std::move(c2),
+        m_limit(move_if<std::is_constructible_v<Limit, C1&&>,
+          std::is_constructible_v<Limit, C2&&>>(std::move(c1), std::move(c2),
           std::nullopt)) {}
 
   template<typename C1, typename C2, typename C3>
-  select_clause::select_clause(std::vector<std::string> columns,
-      from_clause from, C1&& c1, C2&& c2, C3&& c3)
+  SelectClause::SelectClause(std::vector<std::string> columns,
+      FromClause from, C1&& c1, C2&& c2, C3&& c3)
       : m_columns(std::move(columns)),
         m_from(std::move(from)),
         m_where(move_if<std::is_constructible_v<Expression, C1&&>,
           std::is_constructible_v<Expression, C2&&>,
           std::is_constructible_v<Expression, C3&&>>(std::move(c1),
           std::move(c2), std::move(c3), std::nullopt)),
-        m_order(move_if<std::is_constructible_v<order, C1&&>,
-          std::is_constructible_v<order, C2&&>,
-          std::is_constructible_v<order, C3&&>>(std::move(c1), std::move(c2),
+        m_order(move_if<std::is_constructible_v<Order, C1&&>,
+          std::is_constructible_v<Order, C2&&>,
+          std::is_constructible_v<Order, C3&&>>(std::move(c1), std::move(c2),
           std::move(c3), std::nullopt)),
-        m_limit(move_if<std::is_constructible_v<limit, C1&&>,
-          std::is_constructible_v<limit, C2&&>,
-          std::is_constructible_v<limit, C3&&>>(std::move(c1), std::move(c2),
+        m_limit(move_if<std::is_constructible_v<Limit, C1&&>,
+          std::is_constructible_v<Limit, C2&&>,
+          std::is_constructible_v<Limit, C3&&>>(std::move(c1), std::move(c2),
           std::move(c3), std::nullopt)) {}
 
-  inline const std::vector<std::string>& select_clause::get_columns() const {
+  inline const std::vector<std::string>& SelectClause::get_columns() const {
     return m_columns;
   }
 
-  inline const from_clause& select_clause::get_from() const {
+  inline const FromClause& SelectClause::get_from() const {
     return m_from;
   }
 
-  inline const std::optional<Expression>& select_clause::get_where() const {
+  inline const std::optional<Expression>& SelectClause::get_where() const {
     return m_where;
   }
 
-  inline const std::optional<order>& select_clause::get_order() const {
+  inline const std::optional<Order>& SelectClause::get_order() const {
     return m_order;
   }
 
-  inline const std::optional<limit>& select_clause::get_limit() const {
+  inline const std::optional<Limit>& SelectClause::get_limit() const {
     return m_limit;
   }
 }
