@@ -7,7 +7,7 @@
 #include "viper/select_statement.hpp"
 #include "viper/sqlite/data_type_name.hpp"
 
-namespace Viper::sqlite3 {
+namespace Viper::Sqlite3 {
 namespace details {
   template<typename B, typename E, typename F>
   void append_list(B b, E e, std::string& query, F&& f) {

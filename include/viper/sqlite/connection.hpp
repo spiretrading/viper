@@ -10,19 +10,19 @@
 #include "viper/sqlite/data_type_name.hpp"
 #include "viper/sqlite/query_builder.hpp"
 
-namespace Viper::sqlite3 {
+namespace Viper::Sqlite3 {
 
   //! Represents a connection to an SQL database.
-  class connection {
+  class Connection {
     public:
 
       //! Constructs a connection to an SQLite database.
       /*!
         \param path The path to the database.
       */
-      connection(std::string path);
+      Connection(std::string path);
 
-      ~connection();
+      ~Connection();
 
       //! Executes a create table statement.
       /*!
@@ -56,16 +56,16 @@ namespace Viper::sqlite3 {
       ::sqlite3* m_handle;
   };
 
-  inline connection::connection(std::string path)
+  inline Connection::Connection(std::string path)
       : m_path(std::move(path)),
         m_handle(nullptr) {}
 
-  inline connection::~connection() {
+  inline Connection::~Connection() {
     close();
   }
 
   template<typename T>
-  void connection::execute(const create_table_statement<T>& s) {
+  void Connection::execute(const create_table_statement<T>& s) {
     std::string query;
     build_query(s, query);
     char* error;
@@ -79,7 +79,7 @@ namespace Viper::sqlite3 {
   }
 
   template<typename T, typename B, typename E>
-  void connection::execute(const insert_range_statement<T, B, E>& s) {
+  void Connection::execute(const insert_range_statement<T, B, E>& s) {
     std::string query;
     build_query(s, query);
     char* error;
@@ -93,7 +93,7 @@ namespace Viper::sqlite3 {
   }
 
   template<typename T, typename D>
-  void connection::execute(const select_statement<T, D>& s) {
+  void Connection::execute(const select_statement<T, D>& s) {
     std::string query;
     build_query(s, query);
     struct closure {
@@ -120,7 +120,7 @@ namespace Viper::sqlite3 {
     }
   }
 
-  inline void connection::open() {
+  inline void Connection::open() {
     if(m_handle != nullptr) {
       return;
     }
@@ -133,7 +133,7 @@ namespace Viper::sqlite3 {
     }
   }
 
-  inline void connection::close() {
+  inline void Connection::close() {
     if(m_handle == nullptr) {
       return;
     }
