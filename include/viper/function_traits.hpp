@@ -3,7 +3,7 @@
 #include <functional>
 #include <utility>
 
-namespace viper {
+namespace Viper {
   template<typename T>
   struct function_traits : function_traits<decltype(&T::operator())> {};
 

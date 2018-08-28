@@ -10,7 +10,7 @@
 #include "viper/sqlite/data_type_name.hpp"
 #include "viper/sqlite/query_builder.hpp"
 
-namespace viper::sqlite3 {
+namespace Viper::sqlite3 {
 
   //! Represents a connection to an SQL database.
   class connection {

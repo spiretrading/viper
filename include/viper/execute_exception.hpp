@@ -2,7 +2,7 @@
 #define VIPER_EXECUTE_EXCEPTION_HPP
 #include <stdexcept>
 
-namespace viper {
+namespace Viper {
 
   //! Indicates a failure to execute an SQL statement.
   class execute_exception : public std::runtime_error {

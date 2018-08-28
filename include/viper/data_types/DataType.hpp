@@ -3,44 +3,44 @@
 #include <memory>
 #include "viper/data_types/data_type_visitor.hpp"
 
-namespace viper {
+namespace Viper {
 
   /** Base class used to represent an SQL data type. */
-  class data_type {
+  class DataType {
     public:
-      virtual ~data_type() = default;
+      virtual ~DataType() = default;
 
       //! Tests if two objects represent the same data type.
-      bool operator ==(const data_type& right) const;
+      bool operator ==(const DataType& right) const;
 
       //! Tests if two objects represent distinct data types.
-      bool operator !=(const data_type& right) const;
+      bool operator !=(const DataType& right) const;
 
       //! Returns a copy of this data type.
-      virtual std::unique_ptr<data_type> clone() const = 0;
+      virtual std::unique_ptr<DataType> clone() const = 0;
 
       //! Applies a data type visitor to this instance.
       /*!
         \param visitor The visitor to apply.
       */
-      virtual void apply(data_type_visitor& visitor) const = 0;
+      virtual void apply(DataTypeVisitor& visitor) const = 0;
 
     protected:
 
       //! Constructs an SQL data type.
-      data_type() = default;
+      DataType() = default;
 
       //! Copies an SQL data type.
-      data_type(const data_type&) = default;
+      DataType(const DataType&) = default;
 
       //! Assigns to this SQL data type.
-      data_type& operator =(const data_type&) = default;
+      DataType& operator =(const DataType&) = default;
 
       //! Implements the equality test.
-      virtual bool is_equal(const data_type& right) const = 0;
+      virtual bool is_equal(const DataType& right) const = 0;
   };
 
-  inline bool data_type::operator ==(const data_type& right) const {
+  inline bool DataType::operator ==(const DataType& right) const {
     if(this == &right) {
       return true;
     } else if(typeid(*this) != typeid(right)) {
@@ -49,7 +49,7 @@ namespace viper {
     return is_equal(right);
   }
 
-  inline bool data_type::operator !=(const data_type& right) const {
+  inline bool DataType::operator !=(const DataType& right) const {
     return !(*this == right);
   }
 }

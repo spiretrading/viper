@@ -3,7 +3,7 @@
 #include <string>
 #include "viper/table.hpp"
 
-namespace viper {
+namespace Viper {
 
   /*! \brief Represents an SQL CREATE TABLE statement.
       \tparam T The type of table to create.

@@ -3,7 +3,7 @@
 #include "viper/select_clause.hpp"
 #include "viper/table.hpp"
 
-namespace viper {
+namespace Viper {
 
   /*! \brief Represents an SQL SELECT statement.
       \tparam T The type of the result table.

@@ -2,7 +2,7 @@
 #define VIPER_VIRTUAL_EXPRESSION_HPP
 #include <string>
 
-namespace viper {
+namespace Viper {
 
   //! Base class of an SQL expression.
   class virtual_expression {

@@ -3,7 +3,7 @@
 #include <string>
 #include "viper/table.hpp"
 
-namespace viper {
+namespace Viper {
 
   //! Returns the maximum value within a column.
   /*!

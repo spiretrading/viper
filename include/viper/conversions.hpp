@@ -5,7 +5,7 @@
 #include <string_view>
 #include "viper/utilities.hpp"
 
-namespace viper {
+namespace Viper {
 
   /*! \brief Callable data type used to convert a value to an SQL column.
       \tparam T The data type to convert.

@@ -2,7 +2,7 @@
 #define VIPER_UTILITIES_HPP
 #include <utility>
 
-namespace viper {
+namespace Viper {
 namespace details {
   template<bool C>
   struct move_if_s {};

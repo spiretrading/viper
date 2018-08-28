@@ -11,7 +11,7 @@
 #include "viper/index.hpp"
 #include "viper/data_types/native_to_data_type.hpp"
 
-namespace viper {
+namespace Viper {
 
   /*! \brief Defines an SQL table.
       \tparam T The type used to represent a table row.
@@ -76,7 +76,7 @@ namespace viper {
       */
       template<typename G, typename S>
       std::enable_if_t<std::is_invocable_v<G, const type&>, table> add_column(
-        std::string name, const data_type& t, G getter, S setter) const;
+        std::string name, const DataType& t, G getter, S setter) const;
 
       //! Defines a column tied directly to a data member.
       /*!
@@ -97,7 +97,7 @@ namespace viper {
       */
       template<typename U, typename V = T>
       std::enable_if_t<std::is_class_v<V>, table<V>> add_column(
-        std::string name, const data_type& t, U V::* member) const;
+        std::string name, const DataType& t, U V::* member) const;
 
       //! Sets the table's primary key.
       /*!
@@ -279,7 +279,7 @@ namespace viper {
   template<typename T>
   template<typename G, typename S>
   std::enable_if_t<std::is_invocable_v<G, const T&>, table<T>> table<T>::
-      add_column(std::string name, const data_type& t, G getter,
+      add_column(std::string name, const DataType& t, G getter,
       S setter) const {
     auto r = clone();
     r.m_data->m_columns.emplace_back(std::move(name), t, false);
@@ -306,7 +306,7 @@ namespace viper {
   template<typename T>
   template<typename U, typename V>
   std::enable_if_t<std::is_class_v<V>, table<V>> table<T>::add_column(
-      std::string name, const data_type& t, U V::* member) const {
+      std::string name, const DataType& t, U V::* member) const {
     return add_column(std::move(name), t, make_getter(member),
       make_setter(member));
   }

@@ -3,7 +3,7 @@
 #include <string>
 #include "viper/table.hpp"
 
-namespace viper {
+namespace Viper {
 
   /*! \brief Represents an SQL INSERT statement for a range of values.
       \tparam T The type table to insert into.

@@ -4,7 +4,7 @@
 #include "viper/expressions/expression.hpp"
 #include "viper/expressions/literal_expression.hpp"
 
-namespace viper {
+namespace Viper {
 
   //! Implements an SQL expression representing an infix operator.
   class infix_operator final : public virtual_expression {

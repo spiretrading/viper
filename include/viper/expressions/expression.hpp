@@ -4,7 +4,7 @@
 #include <string>
 #include "viper/expressions/virtual_expression.hpp"
 
-namespace viper {
+namespace Viper {
 
   //! Represents an SQL expression that can be translated into an SQL query
   //! string.

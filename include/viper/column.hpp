@@ -5,7 +5,7 @@
 #include <utility>
 #include "viper/data_types/data_type.hpp"
 
-namespace viper {
+namespace Viper {
 
   //! Represents an SQL column.
   struct column {
@@ -14,7 +14,7 @@ namespace viper {
     std::string m_name;
 
     //! The column's data type.
-    std::shared_ptr<data_type> m_type;
+    std::shared_ptr<DataType> m_type;
 
     //! Whether the column is nullable.
     bool m_is_nullable;
@@ -25,10 +25,10 @@ namespace viper {
       \param type The column's data type.
       \param is_nullable Whether the column is nullable.
     */
-    column(std::string name, const data_type& type, bool is_nullable);
+    column(std::string name, const DataType& type, bool is_nullable);
   };
 
-  inline column::column(std::string name, const data_type& type,
+  inline column::column(std::string name, const DataType& type,
       bool is_nullable)
       : m_name(std::move(name)),
         m_type(type.clone()),

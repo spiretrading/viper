@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace viper {
+namespace Viper {
 
   //! Represents an SQL index.
   struct index {

@@ -4,22 +4,22 @@
 #include "viper/data_types/data_type_visitor.hpp"
 #include "viper/data_types/data_types.hpp"
 
-namespace viper::sqlite3 {
+namespace Viper::sqlite3 {
 
   //! Returns the sqlite3 compatible name of an SQL data type.
-  inline std::string get_name(const data_type& t) {
-    struct visitor final : data_type_visitor {
+  inline std::string get_name(const DataType& t) {
+    struct visitor final : DataTypeVisitor {
       std::string m_result;
 
-      void visit(const float_data_type& type) override {
+      void visit(const FloatDataType& type) override {
         m_result = "REAL";
       }
 
-      void visit(const integer_data_type& type) override {
+      void visit(const IntegerDataType& type) override {
         m_result = "INTEGER";
       }
 
-      void visit(const varchar_data_type& type) override {
+      void visit(const VarCharDataType& type) override {
         m_result = "TEXT";
       }
     };

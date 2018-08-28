@@ -9,7 +9,7 @@
 #include "viper/expressions/expression.hpp"
 #include "viper/utilities.hpp"
 
-namespace viper {
+namespace Viper {
   class select_clause;
 
   //! Represents a limit on the number of rows produced by a query.

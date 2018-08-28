@@ -3,7 +3,7 @@
 #include <string>
 #include "viper/expressions/expression.hpp"
 
-namespace viper {
+namespace Viper {
 
   //! Implements an SQL expression representing a literal value.
   class literal_expression final : public virtual_expression {
