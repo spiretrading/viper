@@ -10,8 +10,8 @@ namespace {
     double m_y;
   };
 
-  auto get_table() {
-    return Table<TableRow>().
+  auto get_row() {
+    return Row<TableRow>().
       add_column("x", &TableRow::m_x).
       set_primary_key("x").
       add_column("y", &TableRow::m_y);
@@ -19,7 +19,7 @@ namespace {
 }
 
 TEST_CASE("test_build_create_table_query", "[sqlite_query_builder]") {
-  auto s = create(get_table(), "t1");
+  auto s = create(get_row(), "t1");
   std::string q;
   build_query(s, q);
   REQUIRE(q ==
@@ -31,28 +31,28 @@ TEST_CASE("test_build_create_table_query", "[sqlite_query_builder]") {
 TEST_CASE("test_build_select_query", "[sqlite_query_builder]") {
   SECTION("Simple select query.") {
     std::vector<TableRow> rows;
-    auto s = select(get_table(), "t1", std::back_inserter(rows));
+    auto s = select(get_row(), "t1", std::back_inserter(rows));
     std::string q;
     build_query(s, q);
     REQUIRE(q == "SELECT x,y FROM t1;");
   }
   SECTION("Select query with a where clause.") {
     std::vector<TableRow> rows;
-    auto s = select(get_table(), "t1", sym("x") > 5, std::back_inserter(rows));
+    auto s = select(get_row(), "t1", sym("x") > 5, std::back_inserter(rows));
     std::string q;
     build_query(s, q);
     REQUIRE(q == "SELECT x,y FROM t1 WHERE (x > 5);");
   }
   SECTION("Select query with a limit.") {
     std::vector<TableRow> rows;
-    auto s = select(get_table(), "t1", limit(1000), std::back_inserter(rows));
+    auto s = select(get_row(), "t1", limit(1000), std::back_inserter(rows));
     std::string q;
     build_query(s, q);
     REQUIRE(q == "SELECT x,y FROM t1 LIMIT 1000;");
   }
   SECTION("Select query with an ordering.") {
     std::vector<TableRow> rows;
-    auto s = select(get_table(), "t1", order_by("x", Order::ASC),
+    auto s = select(get_row(), "t1", order_by("x", Order::ASC),
       std::back_inserter(rows));
     std::string q;
     build_query(s, q);
@@ -60,7 +60,7 @@ TEST_CASE("test_build_select_query", "[sqlite_query_builder]") {
   }
   SECTION("Select query with a multi column ordering.") {
     std::vector<TableRow> rows;
-    auto s = select(get_table(), "t1", order_by({"y", "x"}, Order::DESC),
+    auto s = select(get_row(), "t1", order_by({"y", "x"}, Order::DESC),
       std::back_inserter(rows));
     std::string q;
     build_query(s, q);
@@ -68,7 +68,7 @@ TEST_CASE("test_build_select_query", "[sqlite_query_builder]") {
   }
   SECTION("Select query with a where clause and a limit.") {
     std::vector<TableRow> rows;
-    auto s = select(get_table(), "t1", 5 == sym("x"), limit(432),
+    auto s = select(get_row(), "t1", 5 == sym("x"), limit(432),
       std::back_inserter(rows));
     std::string q;
     build_query(s, q);
@@ -76,7 +76,7 @@ TEST_CASE("test_build_select_query", "[sqlite_query_builder]") {
   }
   SECTION("Select query with a where, limit, and order clause.") {
     std::vector<TableRow> rows;
-    auto s = select(get_table(), "t1", 5 == sym("x"), limit(432),
+    auto s = select(get_row(), "t1", 5 == sym("x"), limit(432),
       order_by("x", Order::DESC), std::back_inserter(rows));
     std::string q;
     build_query(s, q);
@@ -93,7 +93,7 @@ TEST_CASE("test_build_select_query", "[sqlite_query_builder]") {
 
 TEST_CASE("test_recursive_select", "[sqlite_query_builder]") {
   std::vector<TableRow> rows;
-  auto s = select(get_table(), select({"a", "b", "c"}, "t1"),
+  auto s = select(get_row(), select({"a", "b", "c"}, "t1"),
     std::back_inserter(rows));
   std::string q;
   build_query(s, q);

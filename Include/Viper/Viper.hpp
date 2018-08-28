@@ -9,7 +9,7 @@
 #include "Viper/ExecuteException.hpp"
 #include "Viper/InsertRangeStatement.hpp"
 #include "Viper/SelectStatement.hpp"
-#include "Viper/Table.hpp"
+#include "Viper/Row.hpp"
 #include "Viper/Utilities.hpp"
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef VIPER_TABLE_HPP
-#define VIPER_TABLE_HPP
+#ifndef VIPER_ROW_HPP
+#define VIPER_ROW_HPP
 #include <functional>
 #include <memory>
 #include <string>
@@ -13,18 +13,18 @@
 
 namespace Viper {
 
-  /*! \brief Defines an SQL table.
-      \tparam T The type used to represent a table row.
+  /*! \brief Defines a row in an SQL table.
+      \tparam T The type used to represent a row.
    */
   template<typename T>
-  class Table {
+  class Row {
     public:
 
-      //! The type used to represent a table row.
-      using type = T;
+      //! The type used to represent a row.
+      using Type = T;
 
-      //! Constructs an empty table.
-      Table();
+      //! Constructs an empty row.
+      Row();
 
       //! Returns the list of columns.
       const std::vector<Column>& get_columns() const;
@@ -37,7 +37,7 @@ namespace Viper {
         \param row The SQL row of values to extract.
         \param value The value to store the rows in.
       */
-      void extract(const char** row, type& value) const;
+      void extract(const char** row, Type& value) const;
 
       //! Appends a value to an SQL query string.
       /*!
@@ -45,114 +45,114 @@ namespace Viper {
         \param column The index of the column to append.
         \param query The query string to append the value to.
       */
-      void append_value(const type& value, int column,
+      void append_value(const Type& value, int column,
         std::string& query) const;
 
-      //! Defines a column for a table with a single column.
+      //! Appends a column.
       /*!
         \param name The name of the column.
-        \return A new table containing the column.
+        \return A new row containing the column.
       */
-      Table add_column(std::string name) const;
+      Row add_column(std::string name) const;
 
-      //! Defines a column using getter and setter methods.
+      //! Appends a column using getter and setter methods.
       /*!
         \param name The name of the column.
         \param getter The method used to return the value to store.
         \param setter The method used to set the value retrieved.
-        \return A new table containing the column.
+        \return A new row containing the column.
       */
       template<typename G, typename S>
-      std::enable_if_t<std::is_invocable_v<G, const type&>, Table> add_column(
+      std::enable_if_t<std::is_invocable_v<G, const Type&>, Row> add_column(
         std::string name, G getter, S setter) const;
 
-      //! Defines a column using getter and setter methods.
+      //! Appends a column using getter and setter methods.
       /*!
         \param name The name of the column.
         \param t The column's data type.
         \param getter The method used to return the value to store.
         \param setter The method used to set the value retrieved.
-        \return A new table containing the column.
+        \return A new row containing the column.
       */
       template<typename G, typename S>
-      std::enable_if_t<std::is_invocable_v<G, const type&>, Table> add_column(
+      std::enable_if_t<std::is_invocable_v<G, const Type&>, Row> add_column(
         std::string name, const DataType& t, G getter, S setter) const;
 
-      //! Defines a column tied directly to a data member.
+      //! Appends a column tied directly to a data member.
       /*!
         \param name The name of the column.
         \param member A pointer to the member to tie the column to.
-        \return A new table containing the column.
+        \return A new row containing the column.
       */
       template<typename U, typename V = T>
-      std::enable_if_t<std::is_class_v<V>, Table<V>> add_column(
-        std::string name, U V::* member) const;
+      std::enable_if_t<std::is_class_v<V>, Row<V>> add_column(std::string name,
+        U V::* member) const;
 
-      //! Defines a column tied directly to a data member.
+      //! Appends a column tied directly to a data member.
       /*!
         \param name The name of the column.
         \param t The column's data type.
         \param member A pointer to the member to tie the column to.
-        \return A new table containing the column.
+        \return A new row containing the column.
       */
       template<typename U, typename V = T>
-      std::enable_if_t<std::is_class_v<V>, Table<V>> add_column(
-        std::string name, const DataType& t, U V::* member) const;
+      std::enable_if_t<std::is_class_v<V>, Row<V>> add_column(std::string name,
+        const DataType& t, U V::* member) const;
 
-      //! Sets the table's primary key.
+      //! Sets the row's primary key.
       /*!
         \param columns A column to use as the primary key.
-        \return A new table containing the primary key.
+        \return A new row containing the primary key.
       */
-      Table set_primary_key(std::string column) const;
+      Row set_primary_key(std::string column) const;
 
-      //! Sets the table's primary key.
+      //! Sets the row's primary key.
       /*!
         \param columns A list of column names to use as the primary key.
-        \return A new table containing the primary key.
+        \return A new row containing the primary key.
       */
-      Table set_primary_key(std::initializer_list<std::string> columns) const;
+      Row set_primary_key(std::initializer_list<std::string> columns) const;
 
-      //! Sets the table's primary key.
+      //! Sets the row's primary key.
       /*!
         \param columns A list of column names to use as the primary key.
-        \return A new table containing the primary key.
+        \return A new row containing the primary key.
       */
-      Table set_primary_key(std::vector<std::string> columns) const;
+      Row set_primary_key(std::vector<std::string> columns) const;
 
       //! Adds an index.
       /*!
         \param name The name of the index.
         \param column The column to use as an index.
-        \return A new table containing the index.
+        \return A new row containing the index.
       */
-      Table add_index(std::string name, std::string column) const;
+      Row add_index(std::string name, std::string column) const;
 
       //! Adds an index.
       /*!
         \param name The name of the index.
         \param columns A list of column names to use as an index.
-        \return A new table containing the index.
+        \return A new row containing the index.
       */
-      Table add_index(std::string name,
+      Row add_index(std::string name,
         std::initializer_list<std::string> columns) const;
 
       //! Adds an index.
       /*!
         \param name The name of the index.
         \param columns A list of column names to use as an index.
-        \return A new table containing the index.
+        \return A new row containing the index.
       */
-      Table add_index(std::string name, std::vector<std::string> columns) const;
+      Row add_index(std::string name, std::vector<std::string> columns) const;
 
     private:
       struct Accessors {
-        std::function<void (const type& value, std::string& columns)> m_getter;
-        std::function<void (type& value, const char** columns)> m_setter;
+        std::function<void (const Type& value, std::string& columns)> m_getter;
+        std::function<void (Type& value, const char** columns)> m_setter;
         int m_count;
 
-        Accessors(std::function<void (const type& value, std::string& columns)>
-          getter, std::function<void (type& value, const char** columns)>
+        Accessors(std::function<void (const Type& value, std::string& columns)>
+          getter, std::function<void (Type& value, const char** columns)>
           setter, int count);
       };
       struct Data {
@@ -162,7 +162,7 @@ namespace Viper {
       };
       std::shared_ptr<Data> m_data;
 
-      Table clone() const;
+      Row clone() const;
   };
 
   //! Makes a getter function from a class method.
@@ -220,29 +220,29 @@ namespace Viper {
   }
 
   template<typename T>
-  Table<T>::Accessors::Accessors(
-      std::function<void (const type& value, std::string& columns)> getter,
-      std::function<void (type& value, const char** columns)> setter, int count)
+  Row<T>::Accessors::Accessors(
+      std::function<void (const Type& value, std::string& columns)> getter,
+      std::function<void (Type& value, const char** columns)> setter, int count)
       : m_getter(std::move(getter)),
         m_setter(std::move(setter)),
         m_count(count) {}
 
   template<typename T>
-  Table<T>::Table()
+  Row<T>::Row()
       : m_data(std::make_shared<Data>()) {}
 
   template<typename T>
-  const std::vector<Column>& Table<T>::get_columns() const {
+  const std::vector<Column>& Row<T>::get_columns() const {
     return m_data->m_columns;
   }
 
   template<typename T>
-  const std::vector<Index>& Table<T>::get_indexes() const {
+  const std::vector<Index>& Row<T>::get_indexes() const {
     return m_data->m_indexes;
   }
 
   template<typename T>
-  void Table<T>::extract(const char** row, type& value) const {
+  void Row<T>::extract(const char** row, Type& value) const {
     for(auto& accessor : m_data->m_accessors) {
       accessor.m_setter(value, row);
       ++row;
@@ -250,46 +250,45 @@ namespace Viper {
   }
 
   template<typename T>
-  void Table<T>::append_value(const type& value, int column,
+  void Row<T>::append_value(const Type& value, int column,
       std::string& query) const {
     m_data->m_accessors[column].m_getter(value, query);
   }
 
   template<typename T>
-  Table<T> Table<T>::add_column(std::string name) const {
+  Row<T> Row<T>::add_column(std::string name) const {
     return add_column(std::move(name),
-      std::function<const type& (const type&)>(
-        [] (const type& v) -> decltype(auto) {
+      std::function<const Type& (const Type&)>(
+        [] (const Type& v) -> decltype(auto) {
           return v;
         }),
-      std::function<void (type&, type)>(
-        [] (type& v, type s) {
+      std::function<void (Type&, Type)>(
+        [] (Type& v, Type s) {
           v = std::move(s);
         }));
   }
 
   template<typename T>
   template<typename G, typename S>
-  std::enable_if_t<std::is_invocable_v<G, const T&>, Table<T>>
-      Table<T>::add_column(std::string name, G getter, S setter) const {
+  std::enable_if_t<std::is_invocable_v<G, const T&>, Row<T>> Row<T>::add_column(
+      std::string name, G getter, S setter) const {
     return add_column(std::move(name), native_to_data_type_v<G>,
       make_getter<T>(std::move(getter)), make_setter<T>(std::move(setter)));
   }
 
   template<typename T>
   template<typename G, typename S>
-  std::enable_if_t<std::is_invocable_v<G, const T&>, Table<T>> Table<T>::
-      add_column(std::string name, const DataType& t, G getter,
-      S setter) const {
+  std::enable_if_t<std::is_invocable_v<G, const T&>, Row<T>> Row<T>::add_column(
+      std::string name, const DataType& t, G getter, S setter) const {
     auto r = clone();
     r.m_data->m_columns.emplace_back(std::move(name), t, false);
     r.m_data->m_accessors.emplace_back(
       [getter = make_getter(std::forward<G>(getter))] (
-          const type& value, std::string& columns) {
+          const Type& value, std::string& columns) {
         to_sql(getter(value), columns);
       },
       [setter = make_setter(std::forward<S>(setter))] (
-          type& value, const char** columns) {
+          Type& value, const char** columns) {
         setter(value, from_sql<get_argument_t<S>>(columns[0]));
       },
       1);
@@ -298,32 +297,32 @@ namespace Viper {
 
   template<typename T>
   template<typename U, typename V>
-  std::enable_if_t<std::is_class_v<V>, Table<V>> Table<T>::add_column(
+  std::enable_if_t<std::is_class_v<V>, Row<V>> Row<T>::add_column(
       std::string name, U V::* member) const {
     return add_column(std::move(name), native_to_data_type_v<U>, member);
   }
 
   template<typename T>
   template<typename U, typename V>
-  std::enable_if_t<std::is_class_v<V>, Table<V>> Table<T>::add_column(
+  std::enable_if_t<std::is_class_v<V>, Row<V>> Row<T>::add_column(
       std::string name, const DataType& t, U V::* member) const {
     return add_column(std::move(name), t, make_getter(member),
       make_setter(member));
   }
 
   template<typename T>
-  Table<T> Table<T>::set_primary_key(std::string column) const {
+  Row<T> Row<T>::set_primary_key(std::string column) const {
     return set_primary_key({column});
   }
 
   template<typename T>
-  Table<T> Table<T>::set_primary_key(
+  Row<T> Row<T>::set_primary_key(
       std::initializer_list<std::string> columns) const {
     return set_primary_key(std::vector<std::string>{columns});
   }
 
   template<typename T>
-  Table<T> Table<T>::set_primary_key(std::vector<std::string> columns) const {
+  Row<T> Row<T>::set_primary_key(std::vector<std::string> columns) const {
     Index i;
     i.m_columns = std::move(columns);
     i.m_is_primary = true;
@@ -337,18 +336,18 @@ namespace Viper {
   }
 
   template<typename T>
-  Table<T> Table<T>::add_index(std::string name, std::string column) const {
+  Row<T> Row<T>::add_index(std::string name, std::string column) const {
     return add_index(std::move(name), {column});
   }
 
   template<typename T>
-  Table<T> Table<T>::add_index(std::string name,
+  Row<T> Row<T>::add_index(std::string name,
       std::initializer_list<std::string> columns) const {
     return add_index(std::move(name), std::vector<std::string>{columns});
   }
 
   template<typename T>
-  Table<T> Table<T>::add_index(std::string name,
+  Row<T> Row<T>::add_index(std::string name,
       std::vector<std::string> columns) const {
     Index i;
     i.m_name = std::move(name);
@@ -359,8 +358,8 @@ namespace Viper {
   }
 
   template<typename T>
-  Table<T> Table<T>::clone() const {
-    Table r;
+  Row<T> Row<T>::clone() const {
+    Row r;
     *r.m_data = *m_data;
     return r;
   }

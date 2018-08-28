@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 project(viper)
 
-include_directories(./include)
+include_directories(./Include)
 
 set(CMAKE_LIBRARY_FLAGS "")
 
@@ -28,12 +28,6 @@ endif()
 if(${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_RELEASE} -pthreads")
 endif()
-if(NOT EXISTS build/debug)
-  file(MAKE_DIRECTORY build/debug)
-endif()
-if(NOT EXISTS build/release)
-  file(MAKE_DIRECTORY build/release)
-endif()
 
 file(GLOB data_types_header_files ./Include/Viper/DataTypes/*.hpp)
 source_group("Data Types" FILES ${data_types_header_files})
@@ -51,7 +45,7 @@ if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 endif()
 
-add_library(viper ${header_files} ${source_files})
+add_library(viper ${header_files})
 set_source_files_properties(${header_files} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_target_properties(viper PROPERTIES STATIC_LIBRARY_FLAGS_RELEASE
   "${CMAKE_LIBRARY_FLAGS}" LINKER_LANGUAGE CXX OUTPUT_NAME viper)

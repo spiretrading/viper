@@ -48,22 +48,22 @@ namespace Details {
       query += "IF NOT EXISTS ";
     }
     query += statement.get_name() + '(';
-    Details::append_list(statement.get_table().get_columns(), query,
+    Details::append_list(statement.get_row().get_columns(), query,
       [] (auto& column, auto& query) {
         query += column.m_name + ' ' + get_name(*column.m_type);
         if(!column.m_is_nullable) {
           query += " NOT NULL";
         }
       });
-    if(!statement.get_table().get_indexes().empty() &&
-        statement.get_table().get_indexes().front().m_is_primary) {
+    if(!statement.get_row().get_indexes().empty() &&
+        statement.get_row().get_indexes().front().m_is_primary) {
       query += ",PRIMARY KEY(";
-      Details::append_list(
-        statement.get_table().get_indexes().front().m_columns, query);
+      Details::append_list(statement.get_row().get_indexes().front().m_columns,
+        query);
       query += ')';
     }
     query += ");";
-    for(auto& current_index : statement.get_table().get_indexes()) {
+    for(auto& current_index : statement.get_row().get_indexes()) {
       if(current_index.m_is_primary) {
         continue;
       }
