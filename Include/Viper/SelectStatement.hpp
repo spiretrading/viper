@@ -1,7 +1,7 @@
 #ifndef VIPER_SELECT_STATEMENT_HPP
 #define VIPER_SELECT_STATEMENT_HPP
-#include "viper/select_clause.hpp"
-#include "viper/table.hpp"
+#include "Viper/SelectClause.hpp"
+#include "Viper/Table.hpp"
 
 namespace Viper {
 

@@ -1,7 +1,7 @@
 #ifndef VIPER_SQL_FUNCTIONS_HPP
 #define VIPER_SQL_FUNCTIONS_HPP
 #include <string>
-#include "viper/table.hpp"
+#include "Viper/Table.hpp"
 
 namespace Viper {
 

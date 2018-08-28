@@ -1,8 +1,8 @@
 #ifndef VIPER_SQLITE_DATA_TYPE_NAME_HPP
 #define VIPER_SQLITE_DATA_TYPE_NAME_HPP
 #include <string>
-#include "viper/data_types/data_type_visitor.hpp"
-#include "viper/data_types/data_types.hpp"
+#include "Viper/DataTypes/DataTypeVisitor.hpp"
+#include "Viper/DataTypes/DataTypes.hpp"
 
 namespace Viper::Sqlite3 {
 

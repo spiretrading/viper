@@ -1,7 +1,7 @@
 #ifndef VIPER_DATA_TYPE_HPP
 #define VIPER_DATA_TYPE_HPP
 #include <memory>
-#include "viper/data_types/data_type_visitor.hpp"
+#include "Viper/DataTypes/DataTypeVisitor.hpp"
 
 namespace Viper {
 

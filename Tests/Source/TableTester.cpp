@@ -1,8 +1,8 @@
 #include <catch.hpp>
-#include "viper/table.hpp"
+#include "Viper/Table.hpp"
 
-using namespace viper;
+using namespace Viper;
 
 TEST_CASE("test_single_column_table", "[table_tester]") {
-  auto t = table<int>().add_column("x");
+  auto t = Table<int>().add_column("x");
 }

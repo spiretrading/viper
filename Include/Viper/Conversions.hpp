@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
-#include "viper/utilities.hpp"
+#include "Viper/Utilities.hpp"
 
 namespace Viper {
 

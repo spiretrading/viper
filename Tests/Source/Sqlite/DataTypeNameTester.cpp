@@ -1,8 +1,8 @@
 #include <catch.hpp>
-#include "viper/sqlite/sqlite.hpp"
+#include "Viper/Sqlite/Sqlite.hpp"
 
-using namespace viper;
-using namespace viper::sqlite3;
+using namespace Viper;
+using namespace Viper::Sqlite3;
 
 TEST_CASE("test_get_name", "[sqlite_data_type_names]") {
   REQUIRE(get_name(f32) == "REAL");

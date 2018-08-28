@@ -2,9 +2,9 @@
 #define VIPER_NATIVE_TO_DATA_TYPE_HPP
 #include <cstdint>
 #include <string>
-#include "viper/data_types/float_data_type.hpp"
-#include "viper/data_types/integer_data_type.hpp"
-#include "viper/data_types/varchar_data_type.hpp"
+#include "Viper/DataTypes/FloatDataType.hpp"
+#include "Viper/DataTypes/IntegerDataType.hpp"
+#include "Viper/DataTypes/VarCharDataType.hpp"
 
 namespace Viper {
 

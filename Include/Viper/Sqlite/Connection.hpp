@@ -2,13 +2,13 @@
 #define VIPER_SQLITE_CONNECTION_HPP
 #include <string>
 #include <sqlite3.h>
-#include "viper/connect_exception.hpp"
-#include "viper/create_table_statement.hpp"
-#include "viper/execute_exception.hpp"
-#include "viper/insert_range_statement.hpp"
-#include "viper/select_statement.hpp"
-#include "viper/sqlite/data_type_name.hpp"
-#include "viper/sqlite/query_builder.hpp"
+#include "Viper/ConnectException.hpp"
+#include "Viper/CreateTableStatement.hpp"
+#include "Viper/ExecuteException.hpp"
+#include "Viper/InsertRangeStatement.hpp"
+#include "Viper/SelectStatement.hpp"
+#include "Viper/Sqlite/DataTypeName.hpp"
+#include "Viper/Sqlite/QueryBuilder.hpp"
 
 namespace Viper::Sqlite3 {
 

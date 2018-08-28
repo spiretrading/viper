@@ -35,28 +35,23 @@ if(NOT EXISTS build/release)
   file(MAKE_DIRECTORY build/release)
 endif()
 
-file(GLOB header_files ./include/viper/*.hpp)
-file(GLOB source_files ./source/*.cpp)
-file(GLOB data_types_header_files ./include/viper/data_types/*.hpp)
-file(GLOB expressions_header_files ./include/viper/expressions/*.hpp)
-file(GLOB sqlite_header_files ./include/viper/sqlite/*.hpp)
+file(GLOB data_types_header_files ./Include/Viper/DataTypes/*.hpp)
+source_group("Data Types" FILES ${data_types_header_files})
+file(GLOB expressions_header_files ./Include/Viper/Expressions/*.hpp)
+source_group("Expressions" FILES ${expressions_header_files})
+file(GLOB sqlite_header_files ./Include/Viper/Sqlite/*.hpp)
+source_group("Sqlite" FILES ${sqlite_header_files})
+file(GLOB viper_header_files ./Include/Viper/*.hpp)
+source_group("Viper" FILES ${viper_header_files})
 
-add_library(viper ${header_files} ${data_types_header_files}
-  ${expressions_header_files} ${sqlite_header_files} ${source_files})
+file(GLOB header_files ${data_types_header_files} ${expressions_header_files}
+  ${sqlite_header_files} ${viper_header_files})
+
+if(MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+endif()
+
+add_library(viper ${header_files} ${source_files})
 set_source_files_properties(${header_files} PROPERTIES HEADER_FILE_ONLY TRUE)
-set_source_files_properties(${data_types_header_files} PROPERTIES
-  HEADER_FILE_ONLY TRUE)
-set_source_files_properties(${expressions_header_files} PROPERTIES
-  HEADER_FILE_ONLY TRUE)
-set_source_files_properties(${sqlite_header_files} PROPERTIES
-  HEADER_FILE_ONLY TRUE)
-source_group("Header Files\\data_types" FILES ${data_types_header_files})
-source_group("Header Files\\expressions" FILES ${expressions_header_files})
-source_group("Header Files\\sqlite" FILES ${sqlite_header_files})
-set_target_properties(viper PROPERTIES
-  STATIC_LIBRARY_FLAGS_RELEASE "${CMAKE_LIBRARY_FLAGS}" OUTPUT_NAME viper)
-
-install(TARGETS viper CONFIGURATIONS Debug
-  DESTINATION build/debug)
-install(TARGETS viper CONFIGURATIONS Release RelWithDebInfo
-  DESTINATION build/release)
+set_target_properties(viper PROPERTIES STATIC_LIBRARY_FLAGS_RELEASE
+  "${CMAKE_LIBRARY_FLAGS}" LINKER_LANGUAGE CXX OUTPUT_NAME viper)

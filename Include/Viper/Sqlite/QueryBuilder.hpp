@@ -1,11 +1,11 @@
 #ifndef VIPER_SQLITE3_QUERY_BUILDER_HPP
 #define VIPER_SQLITE3_QUERY_BUILDER_HPP
 #include <string>
-#include "viper/create_table_statement.hpp"
-#include "viper/insert_range_statement.hpp"
-#include "viper/select_clause.hpp"
-#include "viper/select_statement.hpp"
-#include "viper/sqlite/data_type_name.hpp"
+#include "Viper/CreateTableStatement.hpp"
+#include "Viper/InsertRangeStatement.hpp"
+#include "Viper/SelectClause.hpp"
+#include "Viper/SelectStatement.hpp"
+#include "Viper/Sqlite/DataTypeName.hpp"
 
 namespace Viper::Sqlite3 {
 namespace Details {

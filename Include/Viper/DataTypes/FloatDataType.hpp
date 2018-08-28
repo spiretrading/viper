@@ -1,6 +1,6 @@
 #ifndef VIPER_FLOAT_DATA_TYPE_HPP
 #define VIPER_FLOAT_DATA_TYPE_HPP
-#include "viper/data_types/data_type.hpp"
+#include "Viper/DataTypes/DataType.hpp"
 
 namespace Viper {
 

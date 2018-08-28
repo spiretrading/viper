@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include "viper/data_types/data_type.hpp"
+#include "Viper/DataTypes/DataType.hpp"
 
 namespace Viper {
 

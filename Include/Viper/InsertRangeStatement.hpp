@@ -1,7 +1,7 @@
 #ifndef VIPER_INSERT_RANGE_STATEMENT_HPP
 #define VIPER_INSERT_RANGE_STATEMENT_HPP
 #include <string>
-#include "viper/table.hpp"
+#include "Viper/Table.hpp"
 
 namespace Viper {
 

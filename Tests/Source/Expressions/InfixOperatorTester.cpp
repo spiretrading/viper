@@ -1,31 +1,31 @@
 #include <catch.hpp>
-#include "viper/viper.hpp"
+#include "Viper/Viper.hpp"
 
-using namespace viper;
+using namespace Viper;
 
-TEST_CASE("test_infix_symbols", "[infix_operator]") {
-  REQUIRE(get_symbol(infix_operator::type::ADD) == "+");
-  REQUIRE(get_symbol(infix_operator::type::SUBTRACT) == "-");
-  REQUIRE(get_symbol(infix_operator::type::MULTIPLY) == "*");
-  REQUIRE(get_symbol(infix_operator::type::DIVIDE) == "/");
-  REQUIRE(get_symbol(infix_operator::type::LESS_THAN) == "<");
-  REQUIRE(get_symbol(infix_operator::type::LESS_THAN_OR_EQUAL) == "<=");
-  REQUIRE(get_symbol(infix_operator::type::EQUAL) == "=");
-  REQUIRE(get_symbol(infix_operator::type::NOT_EQUAL) == "<>");
-  REQUIRE(get_symbol(infix_operator::type::GREATER_THAN_OR_EQUAL) == ">=");
-  REQUIRE(get_symbol(infix_operator::type::GREATER_THAN) == ">");
-  REQUIRE(get_symbol(infix_operator::type::AND) == "AND");
-  REQUIRE(get_symbol(infix_operator::type::OR) == "OR");
+TEST_CASE("test_infix_symbols", "[InfixOperator]") {
+  REQUIRE(get_symbol(InfixOperator::Type::ADD) == "+");
+  REQUIRE(get_symbol(InfixOperator::Type::SUBTRACT) == "-");
+  REQUIRE(get_symbol(InfixOperator::Type::MULTIPLY) == "*");
+  REQUIRE(get_symbol(InfixOperator::Type::DIVIDE) == "/");
+  REQUIRE(get_symbol(InfixOperator::Type::LESS_THAN) == "<");
+  REQUIRE(get_symbol(InfixOperator::Type::LESS_THAN_OR_EQUAL) == "<=");
+  REQUIRE(get_symbol(InfixOperator::Type::EQUAL) == "=");
+  REQUIRE(get_symbol(InfixOperator::Type::NOT_EQUAL) == "<>");
+  REQUIRE(get_symbol(InfixOperator::Type::GREATER_THAN_OR_EQUAL) == ">=");
+  REQUIRE(get_symbol(InfixOperator::Type::GREATER_THAN) == ">");
+  REQUIRE(get_symbol(InfixOperator::Type::AND) == "AND");
+  REQUIRE(get_symbol(InfixOperator::Type::OR) == "OR");
 }
 
-TEST_CASE("test_infix_operator", "[infix_operator]") {
-  infix_operator o(infix_operator::type::ADD, sym("a"), sym("b"));
+TEST_CASE("test_InfixOperator", "[InfixOperator]") {
+  InfixOperator o(InfixOperator::Type::ADD, sym("a"), sym("b"));
   std::string query;
   o.append_query(query);
   REQUIRE(query == "(a + b)");
 }
 
-TEST_CASE("test_infix_operator_overloading", "[infix_operator]") {
+TEST_CASE("test_InfixOperator_overloading", "[InfixOperator]") {
   SECTION("Overload of two expressions.") {
     auto o = sym("a") + sym("b");
     std::string query;

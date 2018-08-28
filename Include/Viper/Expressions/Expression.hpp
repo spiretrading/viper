@@ -2,7 +2,7 @@
 #define VIPER_EXPRESSION_HPP
 #include <memory>
 #include <string>
-#include "viper/expressions/virtual_expression.hpp"
+#include "Viper/Expressions/VirtualExpression.hpp"
 
 namespace Viper {
 

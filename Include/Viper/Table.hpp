@@ -5,11 +5,11 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-#include "viper/column.hpp"
-#include "viper/conversions.hpp"
-#include "viper/function_traits.hpp"
-#include "viper/index.hpp"
-#include "viper/data_types/native_to_data_type.hpp"
+#include "Viper/Column.hpp"
+#include "Viper/Conversions.hpp"
+#include "Viper/FunctionTraits.hpp"
+#include "Viper/Index.hpp"
+#include "Viper/DataTypes/NativeToDataType.hpp"
 
 namespace Viper {
 

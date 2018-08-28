@@ -6,8 +6,8 @@
 #include <type_traits>
 #include <variant>
 #include <vector>
-#include "viper/expressions/expression.hpp"
-#include "viper/utilities.hpp"
+#include "Viper/Expressions/Expression.hpp"
+#include "Viper/Utilities.hpp"
 
 namespace Viper {
   class SelectClause;

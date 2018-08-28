@@ -1,8 +1,8 @@
 SETLOCAL
 
 pushd %~dp0
-mkdir third_party
-pushd third_party
+mkdir ThirdParty
+pushd ThirdParty
 if exist sqlite goto end_sqlite_setup
   wget --no-check-certificate https://www.sqlite.org/2018/sqlite-amalgamation-3230100.zip
   if not exist sqlite-amalgamation-3230100.zip goto end_sqlite_setup

@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.8)
 project(viper_tester)
 
-include_directories(./../include)
-include_directories(./third_party/sqlite)
-include_directories(./third_party/Catch2/single_include)
+include_directories(./../Include)
+include_directories(./ThirdParty/sqlite)
+include_directories(./ThirdParty/Catch2/single_include)
 
 if(MSVC)
   set(CMAKE_LIBRARY_FLAGS "/LTCG")
@@ -32,11 +32,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_RELEASE} -pthreads")
 endif()
 
-file(GLOB source_files ./source/*.cpp)
-file(GLOB expressions_source_files ./source/expressions/*.cpp)
-source_group("Source Files\\expressions" FILES ${expressions_source_files})
-file(GLOB sqlite_source_files ./source/sqlite/*.cpp)
-source_group("Source Files\\sqlite" FILES ${sqlite_source_files})
+file(GLOB source_files ./Source/*.cpp)
+file(GLOB expressions_source_files ./Source/Expressions/*.cpp)
+source_group("Source Files\\Expressions" FILES ${expressions_source_files})
+file(GLOB sqlite_source_files ./Source/Sqlite/*.cpp)
+source_group("Source Files\\Sqlite" FILES ${sqlite_source_files})
 
 add_executable(viper_tester ${source_files} ${expressions_source_files}
   ${sqlite_source_files})

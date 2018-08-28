@@ -1,8 +1,8 @@
 #ifndef VIPER_INFIX_OPERATOR_HPP
 #define VIPER_INFIX_OPERATOR_HPP
 #include <stdexcept>
-#include "viper/expressions/expression.hpp"
-#include "viper/expressions/literal_expression.hpp"
+#include "Viper/Expressions/Expression.hpp"
+#include "Viper/Expressions/LiteralExpression.hpp"
 
 namespace Viper {
 

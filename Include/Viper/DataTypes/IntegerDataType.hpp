@@ -1,6 +1,6 @@
 #ifndef VIPER_INTEGER_DATA_TYPE_HPP
 #define VIPER_INTEGER_DATA_TYPE_HPP
-#include "viper/data_types/data_type.hpp"
+#include "Viper/DataTypes/DataType.hpp"
 
 namespace Viper {
 
