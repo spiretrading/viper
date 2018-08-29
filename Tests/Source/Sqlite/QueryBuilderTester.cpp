@@ -1,5 +1,5 @@
 #include <catch.hpp>
-#include "Viper/Sqlite/Sqlite.hpp"
+#include "Viper/Sqlite3/Sqlite3.hpp"
 
 using namespace Viper;
 using namespace Viper::Sqlite3;
@@ -18,7 +18,7 @@ namespace {
   }
 }
 
-TEST_CASE("test_build_create_table_query", "[sqlite_query_builder]") {
+TEST_CASE("test_build_create_table_query", "[sqlite3_query_builder]") {
   auto s = create(get_row(), "t1");
   std::string q;
   build_query(s, q);
@@ -28,7 +28,7 @@ TEST_CASE("test_build_create_table_query", "[sqlite_query_builder]") {
     "COMMIT;");
 }
 
-TEST_CASE("test_build_select_query", "[sqlite_query_builder]") {
+TEST_CASE("test_build_select_query", "[sqlite3_query_builder]") {
   SECTION("Simple select query.") {
     std::vector<TableRow> rows;
     auto s = select(get_row(), "t1", std::back_inserter(rows));
@@ -91,7 +91,7 @@ TEST_CASE("test_build_select_query", "[sqlite_query_builder]") {
   }
 }
 
-TEST_CASE("test_recursive_select", "[sqlite_query_builder]") {
+TEST_CASE("test_recursive_select", "[sqlite3_query_builder]") {
   std::vector<TableRow> rows;
   auto s = select(get_row(), select({"a", "b", "c"}, "t1"),
     std::back_inserter(rows));

@@ -9,7 +9,7 @@ if exist sqlite goto end_sqlite_setup
     unzip sqlite-amalgamation-3230100
     mv sqlite-amalgamation-3230100 sqlite
     pushd sqlite
-    cl /c /O2 sqlite3.c
+    cl /c /O2 /DSQLITE_USE_URI=1 sqlite3.c
     lib sqlite3.obj
     popd
     rm sqlite-amalgamation-3230100.zip

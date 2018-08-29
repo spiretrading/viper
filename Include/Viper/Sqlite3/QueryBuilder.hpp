@@ -5,7 +5,7 @@
 #include "Viper/InsertRangeStatement.hpp"
 #include "Viper/SelectClause.hpp"
 #include "Viper/SelectStatement.hpp"
-#include "Viper/Sqlite/DataTypeName.hpp"
+#include "Viper/Sqlite3/DataTypeName.hpp"
 
 namespace Viper::Sqlite3 {
 namespace Details {
@@ -88,28 +88,29 @@ namespace Details {
   template<typename T, typename B, typename E>
   void build_query(const InsertRangeStatement<T, B, E>& statement,
       std::string& query) {
-    if(statement.get_begin() == statement.get_end()) {
+    if(statement.get_begin() == statement.get_end() ||
+        statement.get_row().get_columns().empty()) {
       return;
     }
     query += "INSERT INTO ";
-    query += statement.get_into_table();
+    query += statement.get_table();
     query += " (";
-    Details::append_list(statement.get_from_table().get_columns(), query,
+    Details::append_list(statement.get_row().get_columns(), query,
       [] (auto& column, auto& query) {
         query += column.m_name;
       });
     query += ") VALUES ";
     Details::append_list(statement.get_begin(), statement.get_end(), query,
-      [] (auto& column, auto& query) {
+      [&] (auto& column, auto& query) {
         query += '(';
         auto prepend_comma = false;
-        for(int j = 0; j < static_cast<int>(
-            statement.get_from_table().get_columns().size()); ++j) {
+        for(auto i = 0; i <
+            static_cast<int>(statement.get_row().get_columns().size()); ++i) {
           if(prepend_comma) {
             query += ',';
           }
           prepend_comma = true;
-          statement.get_from_table().append_value(*i, j, query);
+          statement.get_row().append_value(column, i, query);
         }
         query += ')';
       });

@@ -35,8 +35,8 @@ endif()
 file(GLOB source_files ./Source/*.cpp)
 file(GLOB expressions_source_files ./Source/Expressions/*.cpp)
 source_group("Source Files\\Expressions" FILES ${expressions_source_files})
-file(GLOB sqlite_source_files ./Source/Sqlite/*.cpp)
-source_group("Source Files\\Sqlite" FILES ${sqlite_source_files})
+file(GLOB sqlite_source_files ./Source/Sqlite3/*.cpp)
+source_group("Source Files\\Sqlite3" FILES ${sqlite_source_files})
 
 add_executable(viper_tester ${source_files} ${expressions_source_files}
   ${sqlite_source_files})

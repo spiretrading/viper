@@ -99,6 +99,25 @@ namespace Viper {
       std::enable_if_t<std::is_class_v<V>, Row<V>> add_column(std::string name,
         const DataType& t, U V::* member) const;
 
+      //! Appends a column tied to a function used to access the column.
+      /*!
+        \param name The name of the column.
+        \param accessor The function used to get a reference to the member.
+        \return A new row containing the column.
+      */
+      template<typename F>
+      Row add_column(std::string name, F accessor) const;
+
+      //! Appends a column tied to a function used to access the column.
+      /*!
+        \param name The name of the column.
+        \param t The column's data type.
+        \param accessor The function used to get a reference to the member.
+        \return A new row containing the column.
+      */
+      template<typename F>
+      Row add_column(std::string name, const DataType& t, F accessor) const;
+
       //! Sets the row's primary key.
       /*!
         \param columns A column to use as the primary key.
@@ -183,6 +202,15 @@ namespace Viper {
     return make_function(std::forward<F>(getter));
   }
 
+  //! Makes a getter function from a lambda.
+  template<typename T, typename F>
+  auto make_getter(F&& getter) {
+    return make_getter(
+      [getter = std::forward<F>(getter)] (const T& value) -> decltype(auto) {
+        return getter(value);
+      });
+  }
+
   //! Makes a getter function from a pointer to member.
   template<typename T, typename U>
   auto make_getter(U T::* member) {
@@ -208,6 +236,15 @@ namespace Viper {
   template<typename F>
   auto make_setter(F&& setter) {
     return make_function(std::forward<F>(setter));
+  }
+
+  //! Makes a setter function from a lambda.
+  template<typename T, typename C, typename F>
+  auto make_setter(F&& setter) {
+    return make_setter(
+      [setter = std::forward<F>(setter)] (T& value, C column) {
+        setter(value, std::move(column));
+      });
   }
 
   //! Makes a setter function from a pointer to member.
@@ -272,8 +309,10 @@ namespace Viper {
   template<typename G, typename S>
   std::enable_if_t<std::is_invocable_v<G, const T&>, Row<T>> Row<T>::add_column(
       std::string name, G getter, S setter) const {
-    return add_column(std::move(name), native_to_data_type_v<G>,
-      make_getter<T>(std::move(getter)), make_setter<T>(std::move(setter)));
+    auto getter_wrapper = make_getter<T>(std::move(getter));
+    using Column = std::decay_t<decltype(getter_wrapper)::result_type>;
+    return add_column(std::move(name), native_to_data_type_v<Column>,
+      std::move(getter_wrapper), make_setter<T, Column>(std::move(setter)));
   }
 
   template<typename T>
@@ -308,6 +347,31 @@ namespace Viper {
       std::string name, const DataType& t, U V::* member) const {
     return add_column(std::move(name), t, make_getter(member),
       make_setter(member));
+  }
+
+  template<typename T>
+  template<typename F>
+  Row<T> Row<T>::add_column(std::string name, F accessor) const {
+    return add_column(std::move(name),
+      [=] (auto& value) -> decltype(auto) {
+        return accessor(value);
+      },
+      [=] (auto& value, auto&& column) {
+        accessor(value) = std::forward<decltype(column)>(column);
+      });
+  }
+
+  template<typename T>
+  template<typename F>
+  Row<T> Row<T>::add_column(std::string name, const DataType& t,
+      F accessor) const {
+    return add_column(std::move(name), t,
+      [=] (auto& value) -> decltype(auto) {
+        return accessor(value);
+      },
+      [=] (auto& value, auto& column) {
+        accessor(value) = column;
+      });
   }
 
   template<typename T>

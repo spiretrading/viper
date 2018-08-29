@@ -1,5 +1,5 @@
-#ifndef VIPER_SQLITE_DATA_TYPE_NAME_HPP
-#define VIPER_SQLITE_DATA_TYPE_NAME_HPP
+#ifndef VIPER_SQLITE3_DATA_TYPE_NAME_HPP
+#define VIPER_SQLITE3_DATA_TYPE_NAME_HPP
 #include <string>
 #include "Viper/DataTypes/DataTypeVisitor.hpp"
 #include "Viper/DataTypes/DataTypes.hpp"

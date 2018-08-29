@@ -1,5 +1,5 @@
-#ifndef VIPER_SQLITE_CONNECTION_HPP
-#define VIPER_SQLITE_CONNECTION_HPP
+#ifndef VIPER_SQLITE3_CONNECTION_HPP
+#define VIPER_SQLITE3_CONNECTION_HPP
 #include <string>
 #include <sqlite3.h>
 #include "Viper/ConnectException.hpp"
@@ -7,8 +7,8 @@
 #include "Viper/ExecuteException.hpp"
 #include "Viper/InsertRangeStatement.hpp"
 #include "Viper/SelectStatement.hpp"
-#include "Viper/Sqlite/DataTypeName.hpp"
-#include "Viper/Sqlite/QueryBuilder.hpp"
+#include "Viper/Sqlite3/DataTypeName.hpp"
+#include "Viper/Sqlite3/QueryBuilder.hpp"
 
 namespace Viper::Sqlite3 {
 
@@ -68,6 +68,9 @@ namespace Viper::Sqlite3 {
   void Connection::execute(const CreateTableStatement<T>& s) {
     std::string query;
     build_query(s, query);
+    if(query.empty()) {
+      return;
+    }
     char* error;
     auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
       &error);
@@ -82,6 +85,9 @@ namespace Viper::Sqlite3 {
   void Connection::execute(const InsertRangeStatement<T, B, E>& s) {
     std::string query;
     build_query(s, query);
+    if(query.empty()) {
+      return;
+    }
     char* error;
     auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
       &error);
@@ -96,16 +102,18 @@ namespace Viper::Sqlite3 {
   void Connection::execute(const SelectStatement<T, D>& s) {
     std::string query;
     build_query(s, query);
+    if(query.empty()) {
+      return;
+    }
     struct closure {
       const SelectStatement<T, D>* m_statement;
-      typename SelectStatement<T, D>::destination m_destination;
+      typename SelectStatement<T, D>::Destination m_destination;
     };
     closure c{&s, s.get_first()};
     auto callback = [] (void* data, int count, char** values, char** names) {
       auto& c = *reinterpret_cast<closure*>(data);
-      typename SelectStatement<T, D>::result_table::type value;
-      c.m_statement->get_result_table().extract(
-        const_cast<const char**>(values), value);
+      typename SelectStatement<T, D>::Row::Type value;
+      c.m_statement->get_row().extract(const_cast<const char**>(values), value);
       c.m_destination = std::move(value);
       ++c.m_destination;
       return 0;
