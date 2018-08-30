@@ -13,6 +13,54 @@
 
 namespace Viper {
 
+  /** Trait that tests if a type is a getter callable. */
+  template<typename F, typename T>
+  struct is_getter : std::integral_constant<bool,
+    std::is_invocable_v<F, const T&>> {};
+
+  /** Trait that tests if a type is a getter callable. */
+  template<typename F, typename T>
+  constexpr auto is_getter_v = is_getter<F, T>::value;
+
+  /** Trait to deduce the return type of a getter, or void if parameter is not
+      a getter callable. */
+  template<typename F, typename T, bool Enabled>
+  struct getter_result;
+
+  template<typename F, typename T>
+  struct getter_result<F, T, false> {
+    using type = void;
+  };
+
+  template<typename F, typename T>
+  struct getter_result<F, T, true> {
+    using type = std::decay_t<std::invoke_result_t<F, T>>;
+  };
+
+  /** Trait to deduce the return type of a getter, or void if parameter is not
+      a getter callable. */
+  template<typename F, typename T>
+  using getter_result_t = typename getter_result<F, T,
+    is_getter_v<F, T>>::type;
+
+  /** Trait that tests if a type is a setter callable. */
+  template<typename F, typename T, typename V>
+  struct is_setter : std::integral_constant<bool,
+    std::is_invocable_v<F, const T&, V>> {};
+
+  /** Trait that tests if a type is a setter callable. */
+  template<typename F, typename T, typename V>
+  constexpr auto is_setter_v = is_setter<F, T, V>::value;
+
+  /** Trait that tests if a type is both a getter and a setter callable. */
+  template<typename F, typename T>
+  struct is_accessor : std::integral_constant<bool,
+    is_getter_v<F, T> && is_setter_v<F, T, getter_result_t<F, T>>> {};
+
+  /** Trait that tests if a type is both a getter and a setter callable. */
+  template<typename F, typename T>
+  constexpr auto is_accessor_v = is_accessor<F, T>::value;
+
   /*! \brief Defines a row in an SQL table.
       \tparam T The type used to represent a row.
    */
@@ -63,8 +111,8 @@ namespace Viper {
         \return A new row containing the column.
       */
       template<typename G, typename S>
-      std::enable_if_t<std::is_invocable_v<G, const Type&>, Row> add_column(
-        std::string name, G getter, S setter) const;
+      std::enable_if_t<is_getter_v<G, Type>, Row> add_column(std::string name,
+        G getter, S setter) const;
 
       //! Appends a column using getter and setter methods.
       /*!
@@ -75,8 +123,8 @@ namespace Viper {
         \return A new row containing the column.
       */
       template<typename G, typename S>
-      std::enable_if_t<std::is_invocable_v<G, const Type&>, Row> add_column(
-        std::string name, const DataType& t, G getter, S setter) const;
+      std::enable_if_t<is_getter_v<G, Type>, Row> add_column(std::string name,
+        const DataType& t, G getter, S setter) const;
 
       //! Appends a column tied directly to a data member.
       /*!
@@ -106,7 +154,8 @@ namespace Viper {
         \return A new row containing the column.
       */
       template<typename F>
-      Row add_column(std::string name, F accessor) const;
+      std::enable_if_t<!is_accessor_v<F, Type>, Row> add_column(
+        std::string name, F accessor) const;
 
       //! Appends a column tied to a function used to access the column.
       /*!
@@ -116,7 +165,29 @@ namespace Viper {
         \return A new row containing the column.
       */
       template<typename F>
-      Row add_column(std::string name, const DataType& t, F accessor) const;
+      std::enable_if_t<!is_accessor_v<F, Type>, Row> add_column(
+        std::string name, const DataType& t, F accessor) const;
+
+      //! Appends a column tied to a function used to access the column.
+      /*!
+        \param name The name of the column.
+        \param accessor The function used to get a reference to the member.
+        \return A new row containing the column.
+      */
+      template<typename F>
+      std::enable_if_t<is_accessor_v<F, Type>, Row> add_column(std::string name,
+        F accessor) const;
+
+      //! Appends a column tied to a function used to access the column.
+      /*!
+        \param name The name of the column.
+        \param t The column's data type.
+        \param accessor The function used to get a reference to the member.
+        \return A new row containing the column.
+      */
+      template<typename F>
+      std::enable_if_t<is_accessor_v<F, Type>, Row> add_column(std::string name,
+        const DataType& t, F accessor) const;
 
       //! Sets the row's primary key.
       /*!
@@ -307,27 +378,27 @@ namespace Viper {
 
   template<typename T>
   template<typename G, typename S>
-  std::enable_if_t<std::is_invocable_v<G, const T&>, Row<T>> Row<T>::add_column(
+  std::enable_if_t<is_getter_v<G, T>, Row<T>> Row<T>::add_column(
       std::string name, G getter, S setter) const {
-    auto getter_wrapper = make_getter<T>(std::move(getter));
-    using Column = std::decay_t<typename decltype(getter_wrapper)::result_type>;
     return add_column(std::move(name), native_to_data_type_v<Column>,
-      std::move(getter_wrapper), make_setter<T, Column>(std::move(setter)));
+      make_getter<Type>(std::move(getter)),
+      make_setter<Type, getter_result_t<G, T>>(std::move(setter)));
   }
 
   template<typename T>
   template<typename G, typename S>
-  std::enable_if_t<std::is_invocable_v<G, const T&>, Row<T>> Row<T>::add_column(
+  std::enable_if_t<is_getter_v<G, T>, Row<T>> Row<T>::add_column(
       std::string name, const DataType& t, G getter, S setter) const {
     auto r = clone();
     r.m_data->m_columns.emplace_back(std::move(name), t, false);
     r.m_data->m_accessors.emplace_back(
-      [getter = make_getter(std::forward<G>(getter))] (
+      [getter = make_getter<Type>(std::forward<G>(getter))] (
           const Type& value, std::string& columns) {
         to_sql(getter(value), columns);
       },
-      [setter = make_setter(std::forward<S>(setter))] (
-          Type& value, const char** columns) {
+      [setter =
+          make_setter<Type, getter_result_t<G, Type>>(
+          std::forward<S>(setter))] (Type& value, const char** columns) {
         setter(value, from_sql<get_argument_t<S>>(columns[0]));
       },
       1);
@@ -351,7 +422,8 @@ namespace Viper {
 
   template<typename T>
   template<typename F>
-  Row<T> Row<T>::add_column(std::string name, F accessor) const {
+  std::enable_if_t<!is_accessor_v<F, T>, Row<T>> Row<T>::add_column(
+      std::string name, F accessor) const {
     return add_column(std::move(name),
       [=] (auto& value) -> decltype(auto) {
         return accessor(value);
@@ -363,8 +435,8 @@ namespace Viper {
 
   template<typename T>
   template<typename F>
-  Row<T> Row<T>::add_column(std::string name, const DataType& t,
-      F accessor) const {
+  std::enable_if_t<!is_accessor_v<F, T>, Row<T>> Row<T>::add_column(
+      std::string name, const DataType& t, F accessor) const {
     return add_column(std::move(name), t,
       [=] (auto& value) -> decltype(auto) {
         return accessor(value);
@@ -372,6 +444,20 @@ namespace Viper {
       [=] (auto& value, auto& column) {
         accessor(value) = column;
       });
+  }
+
+  template<typename T>
+  template<typename F>
+  std::enable_if_t<is_accessor_v<F, T>, Row<T>> Row<T>::add_column(
+      std::string name, F accessor) const {
+    return add_column(name, accessor, accessor);
+  }
+
+  template<typename T>
+  template<typename F>
+  std::enable_if_t<is_accessor_v<F, T>, Row<T>> Row<T>::add_column(
+      std::string name, const DataType& t, F accessor) const {
+    return add_column(name, t, accessor, accessor);
   }
 
   template<typename T>

@@ -34,7 +34,7 @@ namespace Viper {
     \param columns The columns to convert.
   */
   template<typename T>
-  T from_sql(const char** columns) {
+  auto from_sql(const char** columns) {
     return FromSql<T>()(columns);
   }
 
@@ -43,7 +43,7 @@ namespace Viper {
     \param column The column to convert.
   */
   template<typename T>
-  T from_sql(const char* column) {
+  auto from_sql(const char* column) {
     return FromSql<T>()(column);
   }
 
@@ -56,7 +56,7 @@ namespace Viper {
 
   template<>
   struct FromSql<double> {
-    double operator ()(const char* column) const {
+    auto operator ()(const char* column) const {
       return std::stod(column);
     }
   };
@@ -70,7 +70,7 @@ namespace Viper {
 
   template<>
   struct FromSql<float> {
-    float operator ()(const char* column) const {
+    auto operator ()(const char* column) const {
       return std::stof(column);
     }
   };
@@ -84,8 +84,36 @@ namespace Viper {
 
   template<>
   struct FromSql<std::int32_t> {
-    std::int32_t operator ()(const char* column) const {
+    auto operator ()(const char* column) const {
       return std::stoi(column);
+    }
+  };
+
+  template<>
+  struct ToSql<std::int64_t> {
+    void operator ()(std::int64_t value, std::string& column) const {
+      column += std::to_string(value);
+    }
+  };
+
+  template<>
+  struct FromSql<std::int64_t> {
+    auto operator ()(const char* column) const {
+      return std::stoll(column);
+    }
+  };
+
+  template<>
+  struct ToSql<std::uint64_t> {
+    void operator ()(std::uint64_t value, std::string& column) const {
+      column += std::to_string(value);
+    }
+  };
+
+  template<>
+  struct FromSql<std::uint64_t> {
+    auto operator ()(const char* column) const {
+      return std::stoull(column);
     }
   };
 
@@ -98,8 +126,8 @@ namespace Viper {
 
   template<>
   struct FromSql<std::string> {
-    std::string operator ()(const char* column) const {
-      return column;
+    auto operator ()(const char* column) const {
+      return std::string(column);
     }
   };
 
