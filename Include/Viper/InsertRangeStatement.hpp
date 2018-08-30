@@ -65,6 +65,18 @@ namespace Viper {
       std::move(begin), std::move(end));
   }
 
+  //! Builds an insert statement for a single value.
+  /*!
+    \param row The type of row to insert.
+    \param table The name of the table to insert into.
+    \param value A pointer to the value to insert.
+  */
+  template<typename R, typename T>
+  auto insert(R row, std::string table, const T* value) {
+    return InsertRangeStatement(std::move(row), std::move(table), value,
+      value + 1);
+  }
+
   template<typename R, typename B, typename E>
   InsertRangeStatement<R, B, E>::InsertRangeStatement(Row row,
       std::string table, Begin begin, End end)

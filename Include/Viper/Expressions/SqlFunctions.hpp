@@ -14,6 +14,15 @@ namespace Viper {
     return Row<T>().add_column("MAX(" + column + ")");
   }
 
+  //! Returns the minimum value within a column.
+  /*!
+    \param column The name of the column.
+  */
+  template<typename T>
+  Row<T> min(std::string column) {
+    return Row<T>().add_column("MIN(" + column + ")");
+  }
+
   //! Returns the number of columns matching a query.
   /*!
     \param column The name of the column.
