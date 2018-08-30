@@ -310,7 +310,7 @@ namespace Viper {
   std::enable_if_t<std::is_invocable_v<G, const T&>, Row<T>> Row<T>::add_column(
       std::string name, G getter, S setter) const {
     auto getter_wrapper = make_getter<T>(std::move(getter));
-    using Column = std::decay_t<decltype(getter_wrapper)::result_type>;
+    using Column = std::decay_t<typename decltype(getter_wrapper)::result_type>;
     return add_column(std::move(name), native_to_data_type_v<Column>,
       std::move(getter_wrapper), make_setter<T, Column>(std::move(setter)));
   }
