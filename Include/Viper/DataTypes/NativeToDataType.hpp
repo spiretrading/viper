@@ -13,6 +13,12 @@ namespace Viper {
   auto native_to_data_type_v = IntegerDataType(true, 0);
 
   template<>
+  auto native_to_data_type_v<bool> = IntegerDataType(false, 1);
+
+  template<>
+  auto native_to_data_type_v<char> = VarCharDataType(1);
+
+  template<>
   auto native_to_data_type_v<std::int8_t> = IntegerDataType(true, 1);
 
   template<>

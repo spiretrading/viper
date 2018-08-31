@@ -48,6 +48,41 @@ namespace Viper {
   }
 
   template<>
+  struct ToSql<bool> {
+    void operator ()(bool value, std::string& column) const {
+      if(value) {
+        column += '1';
+      } else {
+        column += '0';
+      }
+    }
+  };
+
+  template<>
+  struct FromSql<bool> {
+    auto operator ()(const char* column) const {
+      if(column[0] == '0') {
+        return false;
+      }
+      return true;
+    }
+  };
+
+  template<>
+  struct ToSql<char> {
+    void operator ()(char value, std::string& column) const {
+      column += value;
+    }
+  };
+
+  template<>
+  struct FromSql<char> {
+    auto operator ()(const char* column) const {
+      return column[0];
+    }
+  };
+
+  template<>
   struct ToSql<double> {
     void operator ()(double value, std::string& column) const {
       column += std::to_string(value);
