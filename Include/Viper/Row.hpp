@@ -112,7 +112,7 @@ namespace Viper {
       */
       template<typename G, typename S>
       std::enable_if_t<is_getter_v<G, Type>, Row> add_column(std::string name,
-        G getter, S setter) const;
+        G&& getter, S&& setter) const;
 
       //! Appends a column using getter and setter methods.
       /*!
@@ -124,7 +124,7 @@ namespace Viper {
       */
       template<typename G, typename S>
       std::enable_if_t<is_getter_v<G, Type>, Row> add_column(std::string name,
-        const DataType& t, G getter, S setter) const;
+        const DataType& t, G&& getter, S&& setter) const;
 
       //! Appends a column tied directly to a data member.
       /*!
@@ -189,6 +189,47 @@ namespace Viper {
       std::enable_if_t<is_accessor_v<F, Type>, Row> add_column(std::string name,
         const DataType& t, F accessor) const;
 
+      //! Extends this row with by appending another row.
+      /*!
+        \param row The row to to append to this.
+        \param getter The function used to get the sub-row.
+        \param setter The function used to set the sub-row.
+        \return A new row extended by the columns in <i>row</i>.
+      */
+      template<typename R, typename G, typename S>
+      std::enable_if_t<is_getter_v<G, Type>, Row> extend(const Row<R>& row,
+        G&& getter, S&& setter) const;
+
+      //! Extends this row with by appending another row.
+      /*!
+        \param row The row to to append to this.
+        \param member A pointer to the member to tie the row to.
+        \return A new row extended by the columns in <i>row</i>.
+      */
+      template<typename R, typename U, typename V = T>
+      std::enable_if_t<std::is_class_v<V>, Row<V>> extend(const Row<R>& row,
+        U V::* member) const;
+
+      //! Extends this row by appending another row.
+      /*!
+        \param row The row to to append to this.
+        \param accessor The function used to get a reference to the member.
+        \return A new row extended by the columns in <i>row</i>.
+      */
+      template<typename R, typename F>
+      std::enable_if_t<!is_accessor_v<F, Type>, Row> extend(const Row<R>& row,
+        F accessor) const;
+
+      //! Extends this row by appending another row.
+      /*!
+        \param row The row to to append to this.
+        \param accessor The function used to get a reference to the member.
+        \return A new row extended by the columns in <i>row</i>.
+      */
+      template<typename R, typename F>
+      std::enable_if_t<is_accessor_v<F, Type>, Row> extend(const Row<R>& row,
+        F accessor) const;
+
       //! Sets the row's primary key.
       /*!
         \param columns A column to use as the primary key.
@@ -236,6 +277,7 @@ namespace Viper {
       Row add_index(std::string name, std::vector<std::string> columns) const;
 
     private:
+      template<typename> friend class Row;
       struct Accessors {
         std::function<void (const Type& value, std::string& columns)> m_getter;
         std::function<void (Type& value, const char** columns)> m_setter;
@@ -286,7 +328,7 @@ namespace Viper {
   template<typename T, typename U>
   auto make_getter(U T::* member) {
     return make_getter(
-      [=] (const T& value) -> const U& {
+      [=] (const T& value) -> decltype(auto) {
         return value.*member;
       });
   }
@@ -379,16 +421,16 @@ namespace Viper {
   template<typename T>
   template<typename G, typename S>
   std::enable_if_t<is_getter_v<G, T>, Row<T>> Row<T>::add_column(
-      std::string name, G getter, S setter) const {
+      std::string name, G&& getter, S&& setter) const {
     return add_column(std::move(name), native_to_data_type_v<Column>,
-      make_getter<Type>(std::move(getter)),
-      make_setter<Type, getter_result_t<G, T>>(std::move(setter)));
+      make_getter<Type>(std::forward<G>(getter)),
+      make_setter<Type, getter_result_t<G, T>>(std::forward<S>(setter)));
   }
 
   template<typename T>
   template<typename G, typename S>
   std::enable_if_t<is_getter_v<G, T>, Row<T>> Row<T>::add_column(
-      std::string name, const DataType& t, G getter, S setter) const {
+      std::string name, const DataType& t, G&& getter, S&& setter) const {
     auto r = clone();
     r.m_data->m_columns.emplace_back(std::move(name), t, false);
     r.m_data->m_accessors.emplace_back(
@@ -458,6 +500,58 @@ namespace Viper {
   std::enable_if_t<is_accessor_v<F, T>, Row<T>> Row<T>::add_column(
       std::string name, const DataType& t, F accessor) const {
     return add_column(name, t, accessor, accessor);
+  }
+
+  template<typename T>
+  template<typename R, typename G, typename S>
+  std::enable_if_t<is_getter_v<G, T>, Row<T>> Row<T>::extend(const Row<R>& row,
+      G&& getter, S&& setter) const {
+    auto extension = *this;
+    extension.m_data->m_columns.insert(extension.m_data->m_columns.end(),
+      row.m_data->m_columns.begin(), row.m_data->m_columns.end());
+    auto proper_getter = make_getter<Type>(std::forward<G>(getter));
+    auto proper_setter = make_setter<Type, getter_result_t<G, Type>>(
+      std::forward<S>(setter));
+    for(auto& accessor : row.m_data->m_accessors) {
+      extension.m_data->m_accessors.emplace_back(
+        [=] (auto& value, auto& columns) {
+          return accessor.m_getter(proper_getter(value), columns);
+        },
+        [=] (auto& value, auto columns) {
+          decltype(auto) r = proper_getter(value);
+          accessor.m_setter(remove_const(r), columns);
+          proper_setter(value, std::forward<decltype(r)>(r));
+        },
+        accessor.m_count);
+    }
+    return extension;
+  }
+
+  template<typename T>
+  template<typename R, typename U, typename V>
+  std::enable_if_t<std::is_class_v<V>, Row<V>> Row<T>::extend(const Row<R>& row,
+      U V::* member) const {
+    return extend(row, make_getter(member), make_setter(member));
+  }
+
+  template<typename T>
+  template<typename R, typename F>
+  std::enable_if_t<!is_accessor_v<F, T>, Row<T>> Row<T>::extend(
+      const Row<R>& row, F accessor) const {
+    return extend(row,
+      [=] (auto& value) -> decltype(auto) {
+        return accessor(value);
+      },
+      [=] (auto& value, auto&& column) {
+        accessor(value) = std::forward<decltype(column)>(column);
+      });
+  }
+
+  template<typename T>
+  template<typename R, typename F>
+  std::enable_if_t<is_accessor_v<F, T>, Row<T>> Row<T>::extend(
+      const Row<R>& row, F accessor) const {
+    return extend(row, accessor, accessor);
   }
 
   template<typename T>

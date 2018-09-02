@@ -37,6 +37,11 @@ namespace Viper {
   auto make_function(F&& f) {
     return typename function_traits<F>::type(std::forward<F>(f));
   }
+
+  template<typename T>
+  T& remove_const(const T& value) {
+    return const_cast<T&>(value);
+  }
 }
 
 #endif
