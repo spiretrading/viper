@@ -103,6 +103,14 @@ namespace Viper {
       */
       Row add_column(std::string name) const;
 
+      //! Appends a column.
+      /*!
+        \param name The name of the column.
+        \param type Type columns data type.
+        \return A new row containing the column.
+      */
+      Row add_column(std::string name, const DataType& type) const;
+
       //! Appends a column using getter and setter methods.
       /*!
         \param name The name of the column.
@@ -154,8 +162,9 @@ namespace Viper {
         \return A new row containing the column.
       */
       template<typename F>
-      std::enable_if_t<!is_accessor_v<F, Type>, Row> add_column(
-        std::string name, F accessor) const;
+      std::enable_if_t<!is_accessor_v<F, Type> &&
+        !std::is_base_of_v<DataType, F>, Row> add_column(std::string name,
+        F accessor) const;
 
       //! Appends a column tied to a function used to access the column.
       /*!
@@ -407,7 +416,12 @@ namespace Viper {
 
   template<typename T>
   Row<T> Row<T>::add_column(std::string name) const {
-    return add_column(std::move(name),
+    return add_column(std::move(name), native_to_data_type_v<T>);
+  }
+
+  template<typename T>
+  Row<T> Row<T>::add_column(std::string name, const DataType& type) const {
+    return add_column(std::move(name), type,
       std::function<const Type& (const Type&)>(
         [] (const Type& v) -> decltype(auto) {
           return v;
@@ -464,8 +478,8 @@ namespace Viper {
 
   template<typename T>
   template<typename F>
-  std::enable_if_t<!is_accessor_v<F, T>, Row<T>> Row<T>::add_column(
-      std::string name, F accessor) const {
+  std::enable_if_t<!is_accessor_v<F, T> && !std::is_base_of_v<DataType, F>,
+      Row<T>> Row<T>::add_column(std::string name, F accessor) const {
     return add_column(std::move(name),
       [=] (auto& value) -> decltype(auto) {
         return accessor(value);

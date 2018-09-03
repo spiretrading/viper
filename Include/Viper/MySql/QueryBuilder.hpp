@@ -1,14 +1,14 @@
-#ifndef VIPER_SQLITE3_QUERY_BUILDER_HPP
-#define VIPER_SQLITE3_QUERY_BUILDER_HPP
+#ifndef VIPER_MYSQL_QUERY_BUILDER_HPP
+#define VIPER_MYSQL_QUERY_BUILDER_HPP
 #include <string>
 #include "Viper/CreateTableStatement.hpp"
 #include "Viper/DeleteStatement.hpp"
 #include "Viper/InsertRangeStatement.hpp"
+#include "Viper/MySql/DataTypeName.hpp"
 #include "Viper/SelectClause.hpp"
 #include "Viper/SelectStatement.hpp"
-#include "Viper/Sqlite3/DataTypeName.hpp"
 
-namespace Viper::Sqlite3 {
+namespace Viper::MySql {
 namespace Details {
   template<typename B, typename E, typename F>
   void append_list(B b, E e, std::string& query, F&& f) {
@@ -88,10 +88,11 @@ namespace Details {
   */
   inline void build_query(const DeleteStatement& statement,
       std::string& query) {
-    query += "DELETE FROM " + statement.get_table();
     if(statement.get_where().has_value()) {
-      query += " WHERE ";
+      query += "DELETE FROM " + statement.get_table() + " WHERE ";
       statement.get_where()->append_query(query);
+    } else {
+      query += "TRUNCATE TABLE " + statement.get_table();
     }
     query += ';';
   }

@@ -6,6 +6,7 @@
 #include "Viper/ConnectException.hpp"
 #include "Viper/Conversions.hpp"
 #include "Viper/CreateTableStatement.hpp"
+#include "Viper/DeleteStatement.hpp"
 #include "Viper/ExecuteException.hpp"
 #include "Viper/InsertRangeStatement.hpp"
 #include "Viper/SelectStatement.hpp"

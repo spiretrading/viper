@@ -33,13 +33,15 @@ file(GLOB data_types_header_files ./Include/Viper/DataTypes/*.hpp)
 source_group("Data Types" FILES ${data_types_header_files})
 file(GLOB expressions_header_files ./Include/Viper/Expressions/*.hpp)
 source_group("Expressions" FILES ${expressions_header_files})
+file(GLOB mysql_header_files ./Include/Viper/MySql/*.hpp)
+source_group("MySQL" FILES ${mysql_header_files})
 file(GLOB sqlite_header_files ./Include/Viper/Sqlite3/*.hpp)
 source_group("Sqlite3" FILES ${sqlite_header_files})
 file(GLOB viper_header_files ./Include/Viper/*.hpp)
 source_group("Viper" FILES ${viper_header_files})
 
 file(GLOB header_files ${data_types_header_files} ${expressions_header_files}
-  ${sqlite_header_files} ${viper_header_files})
+  ${mysql_header_files} ${sqlite_header_files} ${viper_header_files})
 
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")

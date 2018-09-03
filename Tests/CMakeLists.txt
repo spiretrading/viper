@@ -3,6 +3,7 @@ project(viper_tester)
 
 include_directories(./../Include)
 include_directories(./ThirdParty/sqlite)
+include_directories(./ThirdParty/mysql-connector-c-6.1.11-win32/include)
 include_directories(./ThirdParty/Catch2/single_include)
 
 if(MSVC)

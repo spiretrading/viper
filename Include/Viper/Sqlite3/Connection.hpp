@@ -4,6 +4,7 @@
 #include <sqlite3.h>
 #include "Viper/ConnectException.hpp"
 #include "Viper/CreateTableStatement.hpp"
+#include "Viper/DeleteStatement.hpp"
 #include "Viper/ExecuteException.hpp"
 #include "Viper/InsertRangeStatement.hpp"
 #include "Viper/SelectStatement.hpp"
@@ -12,7 +13,7 @@
 
 namespace Viper::Sqlite3 {
 
-  //! Represents a connection to an SQL database.
+  //! Represents a connection to an SQLite database.
   class Connection {
     public:
 
@@ -30,6 +31,12 @@ namespace Viper::Sqlite3 {
       */
       template<typename T>
       void execute(const CreateTableStatement<T>& s);
+
+      //! Executes a delete statement.
+      /*!
+        \param s The statement to execute.
+      */
+      void execute(const DeleteStatement& s);
 
       //! Executes an insert range statement.
       /*!
@@ -66,6 +73,22 @@ namespace Viper::Sqlite3 {
 
   template<typename T>
   void Connection::execute(const CreateTableStatement<T>& s) {
+    std::string query;
+    build_query(s, query);
+    if(query.empty()) {
+      return;
+    }
+    char* error;
+    auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
+      &error);
+    if(result != SQLITE_OK) {
+      std::string err = error;
+      ::sqlite3_free(error);
+      throw ExecuteException(err);
+    }
+  }
+
+  inline void Connection::execute(const DeleteStatement& s) {
     std::string query;
     build_query(s, query);
     if(query.empty()) {
