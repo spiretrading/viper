@@ -10,46 +10,54 @@ namespace Viper {
 
   //! Returns the SQL data type that best represents a native C++ type.
   template<typename T>
-  auto native_to_data_type_v = IntegerDataType(true, 0);
+  inline const auto native_to_data_type_v = IntegerDataType(true, 0);
 
   template<>
-  auto native_to_data_type_v<bool> = IntegerDataType(false, 1);
+  inline const auto native_to_data_type_v<bool> = IntegerDataType(false, 1);
 
   template<>
-  auto native_to_data_type_v<char> = VarCharDataType(1);
+  inline const auto native_to_data_type_v<char> = VarCharDataType(1);
 
   template<>
-  auto native_to_data_type_v<std::int8_t> = IntegerDataType(true, 1);
+  inline const auto native_to_data_type_v<std::int8_t> =
+    IntegerDataType(true, 1);
 
   template<>
-  auto native_to_data_type_v<std::uint8_t> = IntegerDataType(false, 1);
+  inline const auto native_to_data_type_v<std::uint8_t> =
+    IntegerDataType(false, 1);
 
   template<>
-  auto native_to_data_type_v<std::int16_t> = IntegerDataType(true, 2);
+  inline const auto native_to_data_type_v<std::int16_t> =
+    IntegerDataType(true, 2);
 
   template<>
-  auto native_to_data_type_v<std::uint16_t> = IntegerDataType(false, 2);
+  inline const auto native_to_data_type_v<std::uint16_t> =
+    IntegerDataType(false, 2);
 
   template<>
-  auto native_to_data_type_v<std::int32_t> = IntegerDataType(true, 4);
+  inline const auto native_to_data_type_v<std::int32_t> =
+    IntegerDataType(true, 4);
 
   template<>
-  auto native_to_data_type_v<std::uint32_t> = IntegerDataType(false, 4);
+  inline const auto native_to_data_type_v<std::uint32_t> =
+    IntegerDataType(false, 4);
 
   template<>
-  auto native_to_data_type_v<std::int64_t> = IntegerDataType(true, 8);
+  inline const auto native_to_data_type_v<std::int64_t> =
+    IntegerDataType(true, 8);
 
   template<>
-  auto native_to_data_type_v<std::uint64_t> = IntegerDataType(false, 8);
+  inline const auto native_to_data_type_v<std::uint64_t> =
+    IntegerDataType(false, 8);
 
   template<>
-  auto native_to_data_type_v<float> = FloatDataType(4);
+  inline const auto native_to_data_type_v<float> = FloatDataType(4);
 
   template<>
-  auto native_to_data_type_v<double> = FloatDataType(8);
+  inline const auto native_to_data_type_v<double> = FloatDataType(8);
 
   template<>
-  auto native_to_data_type_v<std::string> = VarCharDataType();
+  inline const auto native_to_data_type_v<std::string> = VarCharDataType();
 }
 
 #endif
