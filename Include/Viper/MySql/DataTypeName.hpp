@@ -38,7 +38,7 @@ namespace Viper::MySql {
 
       void visit(const VarCharDataType& type) override {
         if(type.get_max_size() < 0) {
-          m_result = "VARCHAR(65535) BINARY";
+          m_result = "VARCHAR(64000) BINARY";
         } else {
           m_result = "VARCHAR(" + std::to_string(type.get_max_size()) +
             ") BINARY";

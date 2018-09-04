@@ -96,6 +96,10 @@ namespace Viper::MySql {
     if(result != 0) {
       throw ExecuteException(::mysql_error(m_handle));
     }
+    auto rows = ::mysql_store_result(m_handle);
+    if(rows != nullptr) {
+      ::mysql_free_result(rows);
+    }
   }
 
   inline void Connection::execute(const DeleteStatement& s) {
@@ -107,6 +111,10 @@ namespace Viper::MySql {
     auto result = ::mysql_query(m_handle, query.c_str());
     if(result != 0) {
       throw ExecuteException(::mysql_error(m_handle));
+    }
+    auto rows = ::mysql_store_result(m_handle);
+    if(rows != nullptr) {
+      ::mysql_free_result(rows);
     }
   }
 
@@ -120,6 +128,10 @@ namespace Viper::MySql {
     auto result = ::mysql_query(m_handle, query.c_str());
     if(result != 0) {
       throw ExecuteException(::mysql_error(m_handle));
+    }
+    auto rows = ::mysql_store_result(m_handle);
+    if(rows != nullptr) {
+      ::mysql_free_result(rows);
     }
   }
 
@@ -160,7 +172,7 @@ namespace Viper::MySql {
     auto result = ::mysql_real_connect(m_handle, m_host.c_str(),
       m_username.c_str(), m_password.c_str(), m_database.c_str(), m_port,
       nullptr, CLIENT_MULTI_STATEMENTS);
-    if(result != 0) {
+    if(result == nullptr) {
       auto error = std::string(::mysql_error(m_handle));
       ::mysql_close(m_handle);
       m_handle = nullptr;
