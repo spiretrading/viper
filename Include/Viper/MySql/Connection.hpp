@@ -70,6 +70,8 @@ namespace Viper::MySql {
       std::string m_password;
       std::string m_database;
       ::MYSQL* m_handle;
+
+      void execute(const std::string& query);
   };
 
   inline Connection::Connection(std::string host, unsigned int port,
@@ -89,50 +91,20 @@ namespace Viper::MySql {
   void Connection::execute(const CreateTableStatement<T>& s) {
     std::string query;
     build_query(s, query);
-    if(query.empty()) {
-      return;
-    }
-    auto result = ::mysql_query(m_handle, query.c_str());
-    if(result != 0) {
-      throw ExecuteException(::mysql_error(m_handle));
-    }
-    auto rows = ::mysql_store_result(m_handle);
-    if(rows != nullptr) {
-      ::mysql_free_result(rows);
-    }
+    execute(query);
   }
 
   inline void Connection::execute(const DeleteStatement& s) {
     std::string query;
     build_query(s, query);
-    if(query.empty()) {
-      return;
-    }
-    auto result = ::mysql_query(m_handle, query.c_str());
-    if(result != 0) {
-      throw ExecuteException(::mysql_error(m_handle));
-    }
-    auto rows = ::mysql_store_result(m_handle);
-    if(rows != nullptr) {
-      ::mysql_free_result(rows);
-    }
+    execute(query);
   }
 
   template<typename T, typename B, typename E>
   void Connection::execute(const InsertRangeStatement<T, B, E>& s) {
     std::string query;
     build_query(s, query);
-    if(query.empty()) {
-      return;
-    }
-    auto result = ::mysql_query(m_handle, query.c_str());
-    if(result != 0) {
-      throw ExecuteException(::mysql_error(m_handle));
-    }
-    auto rows = ::mysql_store_result(m_handle);
-    if(rows != nullptr) {
-      ::mysql_free_result(rows);
-    }
+    execute(query);
   }
 
   template<typename T, typename D>
@@ -186,6 +158,29 @@ namespace Viper::MySql {
     }
     ::mysql_close(m_handle);
     m_handle = nullptr;
+  }
+
+  inline void Connection::execute(const std::string& query) {
+    if(query.empty()) {
+      return;
+    }
+    if(::mysql_query(m_handle, query.c_str()) != 0) {
+      throw ExecuteException(::mysql_error(m_handle));
+    }
+    while(true) {
+      auto result = ::mysql_store_result(m_handle);
+      if (result != nullptr) {
+        ::mysql_free_result(result);
+      } else if(::mysql_field_count(m_handle) != 0) {
+        throw ExecuteException(::mysql_error(m_handle));
+      }
+      auto next_result = ::mysql_next_result(m_handle);
+      if(next_result < 0) {
+        break;
+      } else if(next_result > 0) {
+        throw ExecuteException(::mysql_error(m_handle));
+      }
+    }
   }
 }
 
