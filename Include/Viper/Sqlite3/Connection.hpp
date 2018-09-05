@@ -137,7 +137,7 @@ namespace Viper::Sqlite3 {
       auto& c = *reinterpret_cast<closure*>(data);
       typename SelectStatement<T, D>::Row::Type value;
       c.m_statement->get_row().extract(const_cast<const char**>(values), value);
-      c.m_destination = std::move(value);
+      *(c.m_destination) = std::move(value);
       ++c.m_destination;
       return 0;
     };

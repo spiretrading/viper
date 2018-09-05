@@ -140,7 +140,7 @@ namespace Viper::MySql {
     while(auto row = ::mysql_fetch_row(rows)) {
       typename SelectStatement<T, D>::Row::Type value;
       s.get_row().extract(const_cast<const char**>(row), value);
-      destination = std::move(value);
+      *destination = std::move(value);
       ++destination;
     }
     ::mysql_free_result(rows);
