@@ -56,28 +56,22 @@ namespace Details {
           query += " NOT NULL";
         }
       });
-    if(!statement.get_row().get_indexes().empty() &&
-        statement.get_row().get_indexes().front().m_is_primary) {
-      query += ",PRIMARY KEY(";
-      Details::append_list(statement.get_row().get_indexes().front().m_columns,
-        query);
-      query += ')';
+    for(auto& index : statement.get_row().get_indexes()) {
+      if(index.m_is_primary) {
+        query += ",PRIMARY KEY(";
+        Details::append_list(index.m_columns, query);
+        query += ')';
+      } else if(index.m_is_unique) {
+        query += ",UNIQUE KEY " + index.m_name + "(";
+        Details::append_list(index.m_columns, query);
+        query += ')';
+      } else {
+        query += ",KEY " + index.m_name + "(";
+        Details::append_list(index.m_columns, query);
+        query += ')';
+      }
     }
     query += ");";
-    for(auto& current_index : statement.get_row().get_indexes()) {
-      if(current_index.m_is_primary) {
-        continue;
-      }
-      if(current_index.m_is_unique) {
-        query += "CREATE UNIQUE INDEX";
-      } else {
-        query += "CREATE INDEX";
-      }
-      query += " IF NOT EXISTS " + current_index.m_name + " ON " +
-        statement.get_name() + "(";
-      Details::append_list(current_index.m_columns, query);
-      query += ");";
-    }
     query += "COMMIT;";
   }
 

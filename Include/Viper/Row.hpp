@@ -538,6 +538,8 @@ namespace Viper {
         },
         accessor.m_count);
     }
+    extension.m_data->m_indexes.insert(extension.m_data->m_indexes.end(),
+      row.get_indexes().begin(), row.get_indexes().end());
     return extension;
   }
 
