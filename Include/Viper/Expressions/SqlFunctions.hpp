@@ -1,5 +1,6 @@
 #ifndef VIPER_SQL_FUNCTIONS_HPP
 #define VIPER_SQL_FUNCTIONS_HPP
+#include <optional>
 #include <string>
 #include "Viper/Row.hpp"
 
@@ -10,8 +11,8 @@ namespace Viper {
     \param column The name of the column.
   */
   template<typename T>
-  Row<T> max(std::string column) {
-    return Row<T>().add_column("MAX(" + column + ")");
+  Row<std::optional<T>> max(std::string column) {
+    return Row<std::optional<T>>().add_column("MAX(" + column + ")");
   }
 
   //! Returns the minimum value within a column.
@@ -19,8 +20,8 @@ namespace Viper {
     \param column The name of the column.
   */
   template<typename T>
-  Row<T> min(std::string column) {
-    return Row<T>().add_column("MIN(" + column + ")");
+  Row<std::optional<T>> min(std::string column) {
+    return Row<std::optional<T>>().add_column("MIN(" + column + ")");
   }
 
   //! Returns the number of columns matching a query.

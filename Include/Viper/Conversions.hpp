@@ -1,6 +1,7 @@
 #ifndef VIPER_CONVERSIONS_HPP
 #define VIPER_CONVERSIONS_HPP
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 #include "Viper/Utilities.hpp"
@@ -170,6 +171,27 @@ namespace Viper {
   struct ToSql<char[N]> {
     void operator ()(const char (&value)[N], std::string& column) const {
       escape(value, column);
+    }
+  };
+
+  template<typename T>
+  struct ToSql<std::optional<T>> {
+    void operator ()(const std::optional<T>& value, std::string& column) const {
+      if(value.has_value()) {
+        to_sql(*value, column);
+      } else {
+        column += "NULL";
+      }
+    }
+  };
+
+  template<typename T>
+  struct FromSql<std::optional<T>> {
+    std::optional<T> operator ()(const char* column) const {
+      if(column == nullptr) {
+        return std::nullopt;
+      }
+      return from_sql<T>(column);
     }
   };
 }

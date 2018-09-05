@@ -1,6 +1,7 @@
 #ifndef VIPER_NATIVE_TO_DATA_TYPE_HPP
 #define VIPER_NATIVE_TO_DATA_TYPE_HPP
 #include <cstdint>
+#include <optional>
 #include <string>
 #include "Viper/DataTypes/FloatDataType.hpp"
 #include "Viper/DataTypes/IntegerDataType.hpp"
@@ -11,6 +12,10 @@ namespace Viper {
   //! Returns the SQL data type that best represents a native C++ type.
   template<typename T>
   inline const auto native_to_data_type_v = IntegerDataType(true, 0);
+
+  template<typename T>
+  inline const auto native_to_data_type_v<std::optional<T>> =
+    native_to_data_type_v<T>;
 
   template<>
   inline const auto native_to_data_type_v<bool> = IntegerDataType(false, 1);
