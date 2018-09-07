@@ -2,6 +2,7 @@
 #define VIPER_DELETE_STATEMENT_HPP
 #include <optional>
 #include <string>
+#include "Viper/Expressions/Expression.hpp"
 #include "Viper/Row.hpp"
 
 namespace Viper {

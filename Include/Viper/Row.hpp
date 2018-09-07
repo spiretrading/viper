@@ -455,7 +455,7 @@ namespace Viper {
       [setter =
           make_setter<Type, getter_result_t<G, Type>>(
           std::forward<S>(setter))] (Type& value, const char** columns) {
-        setter(value, from_sql<get_argument_t<S>>(columns[0]));
+        setter(value, from_sql<getter_result_t<G, Type>>(columns[0]));
       },
       1);
     return r;
