@@ -23,6 +23,9 @@ namespace Viper::Sqlite3 {
       */
       Connection(std::string path);
 
+      //! Moves a SQLite connection.
+      Connection(Connection&& connection);
+
       ~Connection();
 
       //! Executes a create table statement.
@@ -61,11 +64,20 @@ namespace Viper::Sqlite3 {
     private:
       std::string m_path;
       ::sqlite3* m_handle;
+
+      Connection(const Connection&) = delete;
+      Connection& operator =(const Connection&) = delete;
   };
 
   inline Connection::Connection(std::string path)
       : m_path(std::move(path)),
         m_handle(nullptr) {}
+
+  inline Connection::Connection(Connection&& connection)
+      : m_path(std::move(connection.m_path)),
+        m_handle(connection.m_handle) {
+    connection.m_handle = nullptr;
+  }
 
   inline Connection::~Connection() {
     close();

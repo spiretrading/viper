@@ -28,6 +28,9 @@ namespace Viper::MySql {
       Connection(std::string host, unsigned int port, std::string username,
         std::string password, std::string database);
 
+      //! Moves a MySQL connection.
+      Connection(Connection&& connection);
+
       ~Connection();
 
       //! Executes a create table statement.
@@ -72,6 +75,8 @@ namespace Viper::MySql {
       ::MYSQL* m_handle;
 
       void execute(const std::string& query);
+      Connection(const Connection&) = delete;
+      Connection& operator =(const Connection&) = delete;
   };
 
   inline Connection::Connection(std::string host, unsigned int port,
@@ -82,6 +87,16 @@ namespace Viper::MySql {
         m_password(std::move(password)),
         m_database(std::move(database)),
         m_handle(nullptr) {}
+
+  inline Connection::Connection(Connection&& connection)
+      : m_host(std::move(connection.m_host)),
+        m_port(std::move(connection.m_port)),
+        m_username(std::move(connection.m_username)),
+        m_password(std::move(connection.m_password)),
+        m_database(std::move(connection.m_database)),
+        m_handle(connection.m_handle) {
+    connection.m_handle = nullptr;
+  }
 
   inline Connection::~Connection() {
     close();
