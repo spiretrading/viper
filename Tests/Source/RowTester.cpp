@@ -37,3 +37,11 @@ TEST_CASE("test_extending_row", "[row_tester]") {
   REQUIRE(value.b.x == 456);
   REQUIRE(value.b.y == 789);
 }
+
+TEST_CASE("test_lambda_getter_setter_column", "[row_tester]") {
+  auto row = Row<Point>().
+    add_column("x",
+      [] (auto& row) -> auto& {
+        return row.x;
+      });
+}

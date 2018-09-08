@@ -34,7 +34,7 @@ namespace Viper {
 
   template<typename F, typename T>
   struct getter_result<F, T, true> {
-    using type = std::decay_t<std::invoke_result_t<F, T>>;
+    using type = std::decay_t<std::invoke_result_t<F, const T&>>;
   };
 
   /** Trait to deduce the return type of a getter, or void if parameter is not
