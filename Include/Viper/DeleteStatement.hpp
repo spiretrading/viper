@@ -43,6 +43,15 @@ namespace Viper {
     return DeleteStatement(std::move(table));
   }
 
+  //! Builds a delete statement with a condition.
+  /*!
+    \param table The table to delete from.
+    \param where The condition used to delete rows.
+  */
+  inline auto erase(std::string table, Expression where) {
+    return DeleteStatement(std::move(table), std::move(where));
+  }
+
   inline DeleteStatement::DeleteStatement(std::string table)
       : m_table(std::move(table)) {}
 
