@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include "Viper/DataTypes/BlobDataType.hpp"
 #include "Viper/DataTypes/FloatDataType.hpp"
 #include "Viper/DataTypes/IntegerDataType.hpp"
 #include "Viper/DataTypes/VarCharDataType.hpp"
@@ -16,6 +17,9 @@ namespace Viper {
   template<typename T>
   inline const auto native_to_data_type_v<std::optional<T>> =
     native_to_data_type_v<T>;
+
+  template<>
+  inline const auto native_to_data_type_v<Blob> = BlobDataType();
 
   template<>
   inline const auto native_to_data_type_v<bool> = IntegerDataType(false, 1);

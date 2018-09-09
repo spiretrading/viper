@@ -2,6 +2,7 @@
 #define VIPER_DATA_TYPE_VISITOR_HPP
 
 namespace Viper {
+  class BlobDataType;
   class DataType;
   class FloatDataType;
   class IntegerDataType;
@@ -11,6 +12,8 @@ namespace Viper {
   class DataTypeVisitor {
     public:
       virtual ~DataTypeVisitor() = default;
+
+      virtual void visit(const BlobDataType& type);
 
       virtual void visit(const DataType& type);
 

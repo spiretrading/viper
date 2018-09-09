@@ -11,6 +11,18 @@ namespace Viper::MySql {
     struct Visitor final : DataTypeVisitor {
       std::string m_result;
 
+      void visit(const BlobDataType& type) override {
+        if(type.get_max_size() <= 255) {
+          m_result = "TINYBLOB";
+        } else if(type.get_max_size() <= 65535) {
+          m_result = "BLOB";
+        } else if(type.get_max_size() <= 16777215) {
+          m_result = "MEDIUMBLOB";
+        } else if(type.get_max_size() <= 4294967295) {
+          m_result = "LONGBLOB";
+        }
+      }
+
       void visit(const FloatDataType& type) override {
         if(type.get_size() == 4) {
           m_result = "FLOAT";
