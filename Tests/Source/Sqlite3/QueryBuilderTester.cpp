@@ -99,3 +99,20 @@ TEST_CASE("test_recursive_select", "[sqlite3_query_builder]") {
   build_query(s, q);
   REQUIRE(q == "SELECT x,y FROM (SELECT a,b,c FROM t1) AS alias;");
 }
+
+TEST_CASE("test_blob", "[sqlite3_query_builder]") {
+  auto row = Row<Blob>().add_column("data");
+  Connection c(":memory:");
+  c.open();
+  c.execute(create(row, "test_table"));
+  Blob blob;
+  char value[13];
+  std::memcpy(value, "he\0llo wor\0ld", sizeof(value));
+  blob.m_size = sizeof(value);
+  blob.m_data = reinterpret_cast<std::byte*>(value);
+  c.execute(insert(row, "test_table", &blob));
+  Blob select_blob;
+  c.execute(select(row, "test_table", &select_blob));
+  auto select_data = reinterpret_cast<const char*>(select_blob.m_data);
+  REQUIRE(std::memcmp(blob.m_data, select_blob.m_data, blob.m_size) == 0);
+}

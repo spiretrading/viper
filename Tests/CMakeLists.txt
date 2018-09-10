@@ -41,4 +41,5 @@ source_group("Source Files\\Sqlite3" FILES ${sqlite_source_files})
 
 add_executable(viper_tester ${source_files} ${expressions_source_files}
   ${sqlite_source_files})
+target_link_libraries(viper_tester ./ThirdParty/sqlite/sqlite3)
 add_custom_command(TARGET viper_tester POST_BUILD COMMAND viper_tester)

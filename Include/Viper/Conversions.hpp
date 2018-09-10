@@ -4,9 +4,20 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include "Viper/DataTypes/BlobDataType.hpp"
 #include "Viper/Utilities.hpp"
 
 namespace Viper {
+
+  //! Stores the column in raw bytes.
+  struct RawColumn {
+
+    //! The raw bytes encoding the value.
+    const char* m_data;
+
+    //! The size in bytes of the column.
+    std::size_t m_size;
+  };
 
   /*! \brief Callable data type used to convert a value to an SQL column.
       \tparam T The data type to convert.
@@ -35,7 +46,7 @@ namespace Viper {
     \param columns The columns to convert.
   */
   template<typename T>
-  auto from_sql(const char** columns) {
+  auto from_sql(const RawColumn* columns) {
     return FromSql<T>()(columns);
   }
 
@@ -44,7 +55,7 @@ namespace Viper {
     \param column The column to convert.
   */
   template<typename T>
-  auto from_sql(const char* column) {
+  auto from_sql(const RawColumn& column) {
     return FromSql<T>()(column);
   }
 
@@ -61,8 +72,8 @@ namespace Viper {
 
   template<>
   struct FromSql<bool> {
-    auto operator ()(const char* column) const {
-      if(column[0] == '0') {
+    auto operator ()(const RawColumn& column) const {
+      if(column.m_data[0] == '0') {
         return false;
       }
       return true;
@@ -78,8 +89,8 @@ namespace Viper {
 
   template<>
   struct FromSql<char> {
-    auto operator ()(const char* column) const {
-      return column[0];
+    auto operator ()(const RawColumn& column) const {
+      return column.m_data[0];
     }
   };
 
@@ -92,8 +103,8 @@ namespace Viper {
 
   template<>
   struct FromSql<double> {
-    auto operator ()(const char* column) const {
-      return std::stod(column);
+    auto operator ()(const RawColumn& column) const {
+      return std::stod(column.m_data);
     }
   };
 
@@ -106,8 +117,8 @@ namespace Viper {
 
   template<>
   struct FromSql<float> {
-    auto operator ()(const char* column) const {
-      return std::stof(column);
+    auto operator ()(const RawColumn& column) const {
+      return std::stof(column.m_data);
     }
   };
 
@@ -120,8 +131,8 @@ namespace Viper {
 
   template<>
   struct FromSql<std::int32_t> {
-    auto operator ()(const char* column) const {
-      return std::stoi(column);
+    auto operator ()(const RawColumn& column) const {
+      return std::stoi(column.m_data);
     }
   };
 
@@ -134,8 +145,8 @@ namespace Viper {
 
   template<>
   struct FromSql<std::uint32_t> {
-    auto operator ()(const char* column) const {
-      return std::stoul(column);
+    auto operator ()(const RawColumn& column) const {
+      return std::stoul(column.m_data);
     }
   };
 
@@ -148,8 +159,8 @@ namespace Viper {
 
   template<>
   struct FromSql<std::int64_t> {
-    auto operator ()(const char* column) const {
-      return std::stoll(column);
+    auto operator ()(const RawColumn& column) const {
+      return std::stoll(column.m_data);
     }
   };
 
@@ -162,8 +173,8 @@ namespace Viper {
 
   template<>
   struct FromSql<std::uint64_t> {
-    auto operator ()(const char* column) const {
-      return std::stoull(column);
+    auto operator ()(const RawColumn& column) const {
+      return std::stoull(column.m_data);
     }
   };
 
@@ -176,8 +187,8 @@ namespace Viper {
 
   template<>
   struct FromSql<std::string> {
-    auto operator ()(const char* column) const {
-      return std::string(column);
+    auto operator ()(const RawColumn& column) const {
+      return std::string(column.m_data);
     }
   };
 
@@ -185,6 +196,29 @@ namespace Viper {
   struct ToSql<char[N]> {
     void operator ()(const char (&value)[N], std::string& column) const {
       escape(value, column);
+    }
+  };
+
+  template<>
+  struct ToSql<Blob> {
+    void operator ()(Blob value, std::string& column) const {
+      static constexpr auto HEX_DIGITS = "0123456789ABCDEF";
+      column += "X'";
+      for(auto i = std::size_t(0); i != value.m_size; ++i) {
+        column += HEX_DIGITS[static_cast<unsigned char>(
+          value.m_data[i] >> 4) & 0xF];
+        column += HEX_DIGITS[static_cast<unsigned char>(value.m_data[i]) & 0xF];
+      }
+      column += '\'';
+    }
+  };
+
+  template<>
+  struct FromSql<Blob> {
+    auto operator ()(const RawColumn& column) const {
+      auto data = static_cast<std::byte*>(std::malloc(column.m_size));
+      std::memcpy(data, column.m_data, column.m_size);
+      return Blob{data, column.m_size};
     }
   };
 
@@ -201,8 +235,8 @@ namespace Viper {
 
   template<typename T>
   struct FromSql<std::optional<T>> {
-    std::optional<T> operator ()(const char* column) const {
-      if(column == nullptr) {
+    std::optional<T> operator ()(const RawColumn& column) const {
+      if(column.m_data == nullptr) {
         return std::nullopt;
       }
       return from_sql<T>(column);

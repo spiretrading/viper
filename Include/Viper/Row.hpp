@@ -82,10 +82,10 @@ namespace Viper {
 
       //! Extracts an SQL row.
       /*!
-        \param row The SQL row of values to extract.
+        \param row A pointer to the first column to extract.
         \param value The value to store the rows in.
       */
-      void extract(const char** row, Type& value) const;
+      void extract(const RawColumn* row, Type& value) const;
 
       //! Appends a value to an SQL query string.
       /*!
@@ -289,11 +289,11 @@ namespace Viper {
       template<typename> friend class Row;
       struct Accessors {
         std::function<void (const Type& value, std::string& columns)> m_getter;
-        std::function<void (Type& value, const char** columns)> m_setter;
+        std::function<void (Type& value, const RawColumn* row)> m_setter;
         int m_count;
 
         Accessors(std::function<void (const Type& value, std::string& columns)>
-          getter, std::function<void (Type& value, const char** columns)>
+          getter, std::function<void (Type& value, const RawColumn* columns)>
           setter, int count);
       };
       struct Data {
@@ -381,7 +381,7 @@ namespace Viper {
   template<typename T>
   Row<T>::Accessors::Accessors(
       std::function<void (const Type& value, std::string& columns)> getter,
-      std::function<void (Type& value, const char** columns)> setter, int count)
+      std::function<void (Type& value, const RawColumn* row)> setter, int count)
       : m_getter(std::move(getter)),
         m_setter(std::move(setter)),
         m_count(count) {}
@@ -401,7 +401,7 @@ namespace Viper {
   }
 
   template<typename T>
-  void Row<T>::extract(const char** row, Type& value) const {
+  void Row<T>::extract(const RawColumn* row, Type& value) const {
     for(auto& accessor : m_data->m_accessors) {
       accessor.m_setter(value, row);
       ++row;
@@ -452,10 +452,9 @@ namespace Viper {
           const Type& value, std::string& columns) {
         to_sql(getter(value), columns);
       },
-      [setter =
-          make_setter<Type, getter_result_t<G, Type>>(
-          std::forward<S>(setter))] (Type& value, const char** columns) {
-        setter(value, from_sql<getter_result_t<G, Type>>(columns[0]));
+      [setter = make_setter<Type, getter_result_t<G, Type>>(
+          std::forward<S>(setter))] (Type& value, const RawColumn* row) {
+        setter(value, from_sql<getter_result_t<G, Type>>(row[0]));
       },
       1);
     return r;

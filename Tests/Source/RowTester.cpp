@@ -28,10 +28,10 @@ TEST_CASE("test_extending_row", "[row_tester]") {
     add_column("a", &Entry::a).
     extend(r1, &Entry::b);
   auto value = Entry();
-  std::array<const char*, 3> row_values;
-  row_values[0] = "123";
-  row_values[1] = "456";
-  row_values[2] = "789";
+  std::array<RawColumn, 3> row_values;
+  row_values[0].m_data = "123";
+  row_values[1].m_data = "456";
+  row_values[2].m_data = "789";
   r2.extract(row_values.data(), value);
   REQUIRE(value.a == 123);
   REQUIRE(value.b.x == 456);

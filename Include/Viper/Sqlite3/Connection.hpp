@@ -140,27 +140,50 @@ namespace Viper::Sqlite3 {
     if(query.empty()) {
       return;
     }
-    struct closure {
-      const SelectStatement<T, D>* m_statement;
-      typename SelectStatement<T, D>::Destination m_destination;
-    };
-    closure c{&s, s.get_first()};
-    auto callback = [] (void* data, int count, char** values, char** names) {
-      auto& c = *reinterpret_cast<closure*>(data);
-      typename SelectStatement<T, D>::Row::Type value;
-      c.m_statement->get_row().extract(const_cast<const char**>(values), value);
-      *(c.m_destination) = std::move(value);
-      ++c.m_destination;
-      return 0;
-    };
-    char* error;
-    auto result = ::sqlite3_exec(m_handle, query.c_str(), +callback, &c,
-      &error);
+    auto statement = static_cast<sqlite3_stmt*>(nullptr);
+    auto result = ::sqlite3_prepare_v2(m_handle, query.c_str(), -1, &statement,
+      nullptr);
     if(result != SQLITE_OK) {
-      std::string err = error;
-      ::sqlite3_free(error);
-      throw ExecuteException(err);
+      throw ExecuteException(::sqlite3_errmsg(m_handle));
     }
+    auto destination = s.get_first();
+    std::vector<RawColumn> columns;
+    columns.reserve(s.get_row().get_columns().size());
+    while((result = ::sqlite3_step(statement)) == SQLITE_ROW) {
+      columns.clear();
+      for(auto i = 0; i != static_cast<int>(s.get_row().get_columns().size());
+          ++i) {
+        struct TypeVisitor final : DataTypeVisitor {
+          sqlite3_stmt* m_statement;
+          int m_index;
+          std::vector<RawColumn>* m_columns;
+
+          void visit(const BlobDataType& t) override {
+            auto data = ::sqlite3_column_blob(m_statement, m_index);
+            auto size = ::sqlite3_column_bytes(m_statement, m_index);
+            m_columns->push_back(RawColumn{reinterpret_cast<const char*>(data),
+              static_cast<std::size_t>(size)});
+          }
+
+          void visit(const DataType& t) override {
+            auto data = ::sqlite3_column_text(m_statement, m_index);
+            m_columns->emplace_back(RawColumn{
+              reinterpret_cast<const char*>(data), 0});
+          }
+        };
+        TypeVisitor visitor;
+        visitor.m_statement = statement;
+        visitor.m_index = i;
+        visitor.m_columns = &columns;
+        auto& column = s.get_row().get_columns()[i];
+        column.m_type->apply(visitor);
+      }
+      auto value = typename SelectStatement<T, D>::Row::Type();
+      s.get_row().extract(columns.data(), value);
+      *destination = std::move(value);
+      ++destination;
+    }
+    ::sqlite3_finalize(statement);
   }
 
   inline void Connection::open() {

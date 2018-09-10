@@ -152,9 +152,18 @@ namespace Viper::MySql {
     }
     auto count = ::mysql_num_fields(rows);
     auto destination = s.get_first();
+    std::vector<RawColumn> columns;
+    columns.reserve(s.get_row().get_columns().size());
     while(auto row = ::mysql_fetch_row(rows)) {
-      typename SelectStatement<T, D>::Row::Type value;
-      s.get_row().extract(const_cast<const char**>(row), value);
+      columns.clear();
+      auto lengths = ::mysql_fetch_lengths(rows);
+      for(auto i = 0; i != static_cast<int>(s.get_row().get_columns().size());
+          ++i) {
+        columns.push_back(RawColumn{
+          row[i], static_cast<std::size_t>(lengths[i])});
+      }
+      auto value = typename SelectStatement<T, D>::Row::Type();
+      s.get_row().extract(columns.data(), value);
       *destination = std::move(value);
       ++destination;
     }
