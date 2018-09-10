@@ -1,6 +1,7 @@
 #ifndef VIPER_CONVERSIONS_HPP
 #define VIPER_CONVERSIONS_HPP
 #include <cstdint>
+#include <cstring>
 #include <optional>
 #include <string>
 #include <string_view>
