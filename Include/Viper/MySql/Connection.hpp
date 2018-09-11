@@ -33,6 +33,19 @@ namespace Viper::MySql {
 
       ~Connection();
 
+      //! Tests if a table exists.
+      /*!
+        \param name The name of the table.
+        \return <code>true</code> iff the table exists.
+      */
+      bool has_table(std::string_view name);
+
+      //! Executes a raw SQL query.
+      /*!
+        \param s The statement to execute.
+      */
+      void execute(std::string_view s);
+
       //! Executes a create table statement.
       /*!
         \param s The statement to execute.
@@ -74,7 +87,6 @@ namespace Viper::MySql {
       std::string m_database;
       ::MYSQL* m_handle;
 
-      void execute(const std::string& query);
       Connection(const Connection&) = delete;
       Connection& operator =(const Connection&) = delete;
   };
@@ -100,6 +112,47 @@ namespace Viper::MySql {
 
   inline Connection::~Connection() {
     close();
+  }
+
+  inline void Connection::execute(std::string_view s) {
+    if(s.empty()) {
+      return;
+    }
+    if(::mysql_query(m_handle, s.data()) != 0) {
+      throw ExecuteException(::mysql_error(m_handle));
+    }
+    while(true) {
+      auto result = ::mysql_store_result(m_handle);
+      if (result != nullptr) {
+        ::mysql_free_result(result);
+      } else if(::mysql_field_count(m_handle) != 0) {
+        throw ExecuteException(::mysql_error(m_handle));
+      }
+      auto next_result = ::mysql_next_result(m_handle);
+      if(next_result < 0) {
+        break;
+      } else if(next_result > 0) {
+        throw ExecuteException(::mysql_error(m_handle));
+      }
+    }
+  }
+
+  inline bool Connection::has_table(std::string_view name) {
+    auto escaped_name = std::string();
+    escape(name, escaped_name);
+    auto query = std::string("SHOW TABLES IN " + m_database + " LIKE '" +
+      escaped_name + "'");
+    auto result = ::mysql_query(m_handle, query.c_str());
+    if(result != 0) {
+      throw ExecuteException(::mysql_error(m_handle));
+    }
+    auto rows = ::mysql_store_result(m_handle);
+    if(rows == nullptr) {
+      throw ExecuteException(::mysql_error(m_handle));
+    }
+    auto has_table = (::mysql_fetch_row(rows) != nullptr);
+    ::mysql_free_result(rows);
+    return has_table;
   }
 
   template<typename T>
@@ -195,29 +248,6 @@ namespace Viper::MySql {
     }
     ::mysql_close(m_handle);
     m_handle = nullptr;
-  }
-
-  inline void Connection::execute(const std::string& query) {
-    if(query.empty()) {
-      return;
-    }
-    if(::mysql_query(m_handle, query.c_str()) != 0) {
-      throw ExecuteException(::mysql_error(m_handle));
-    }
-    while(true) {
-      auto result = ::mysql_store_result(m_handle);
-      if (result != nullptr) {
-        ::mysql_free_result(result);
-      } else if(::mysql_field_count(m_handle) != 0) {
-        throw ExecuteException(::mysql_error(m_handle));
-      }
-      auto next_result = ::mysql_next_result(m_handle);
-      if(next_result < 0) {
-        break;
-      } else if(next_result > 0) {
-        throw ExecuteException(::mysql_error(m_handle));
-      }
-    }
   }
 }
 

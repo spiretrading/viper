@@ -5,16 +5,6 @@
 
 namespace Viper {
 
-  //! Represents an SQL blob.
-  struct Blob {
-
-    //! A pointer to the first byte in the blob.
-    std::byte* m_data;
-
-    //! The number of bytes in the blob.
-    std::size_t m_size;
-  };
-
   /** Represents an SQL variable length binary object up to a maximum size. */
   class BlobDataType final : public DataType {
     public:

@@ -19,7 +19,8 @@ namespace Viper {
     native_to_data_type_v<T>;
 
   template<>
-  inline const auto native_to_data_type_v<Blob> = BlobDataType();
+  inline const auto native_to_data_type_v<std::vector<std::byte>> =
+    BlobDataType();
 
   template<>
   inline const auto native_to_data_type_v<bool> = IntegerDataType(false, 1);

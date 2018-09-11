@@ -15,7 +15,7 @@ namespace Viper {
       /*!
         \param table The table to delete from.
       */
-      DeleteStatement(std::string table);
+      explicit DeleteStatement(std::string table);
 
       //! Constructs a delete statement.
       /*!

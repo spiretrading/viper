@@ -28,6 +28,19 @@ namespace Viper::Sqlite3 {
 
       ~Connection();
 
+      //! Tests if a table exists.
+      /*!
+        \param name The name of the table.
+        \return <code>true</code> iff the table exists.
+      */
+      bool has_table(std::string_view name);
+
+      //! Executes a raw SQL query.
+      /*!
+        \param s The statement to execute.
+      */
+      void execute(std::string_view s);
+
       //! Executes a create table statement.
       /*!
         \param s The statement to execute.
@@ -83,16 +96,27 @@ namespace Viper::Sqlite3 {
     close();
   }
 
-  template<typename T>
-  void Connection::execute(const CreateTableStatement<T>& s) {
-    std::string query;
-    build_query(s, query);
-    if(query.empty()) {
+  inline bool Connection::has_table(std::string_view name) {
+    auto escaped_name = std::string();
+    escape(name, escaped_name);
+    auto query = "PRAGMA table_info('" + escaped_name + "');";
+    auto statement = static_cast<::sqlite3_stmt*>(nullptr);
+    auto result = ::sqlite3_prepare_v2(m_handle, query.c_str(), -1, &statement,
+      nullptr);
+    if(result != SQLITE_OK) {
+      throw ExecuteException(::sqlite3_errmsg(m_handle));
+    }
+    auto has_table = ((result = ::sqlite3_step(statement)) == SQLITE_ROW);
+    ::sqlite3_finalize(statement);
+    return has_table;
+  }
+
+  inline void Connection::execute(std::string_view s) {
+    if(s.empty()) {
       return;
     }
     char* error;
-    auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
-      &error);
+    auto result = ::sqlite3_exec(m_handle, s.data(), nullptr, nullptr, &error);
     if(result != SQLITE_OK) {
       std::string err = error;
       ::sqlite3_free(error);
@@ -100,37 +124,24 @@ namespace Viper::Sqlite3 {
     }
   }
 
+  template<typename T>
+  void Connection::execute(const CreateTableStatement<T>& s) {
+    std::string query;
+    build_query(s, query);
+    execute(query);
+  }
+
   inline void Connection::execute(const DeleteStatement& s) {
     std::string query;
     build_query(s, query);
-    if(query.empty()) {
-      return;
-    }
-    char* error;
-    auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
-      &error);
-    if(result != SQLITE_OK) {
-      std::string err = error;
-      ::sqlite3_free(error);
-      throw ExecuteException(err);
-    }
+    execute(query);
   }
 
   template<typename T, typename B, typename E>
   void Connection::execute(const InsertRangeStatement<T, B, E>& s) {
     std::string query;
     build_query(s, query);
-    if(query.empty()) {
-      return;
-    }
-    char* error;
-    auto result = ::sqlite3_exec(m_handle, query.c_str(), nullptr, nullptr,
-      &error);
-    if(result != SQLITE_OK) {
-      std::string err = error;
-      ::sqlite3_free(error);
-      throw ExecuteException(err);
-    }
+    execute(query);
   }
 
   template<typename T, typename D>
@@ -140,7 +151,7 @@ namespace Viper::Sqlite3 {
     if(query.empty()) {
       return;
     }
-    auto statement = static_cast<sqlite3_stmt*>(nullptr);
+    auto statement = static_cast<::sqlite3_stmt*>(nullptr);
     auto result = ::sqlite3_prepare_v2(m_handle, query.c_str(), -1, &statement,
       nullptr);
     if(result != SQLITE_OK) {
@@ -154,7 +165,7 @@ namespace Viper::Sqlite3 {
       for(auto i = 0; i != static_cast<int>(s.get_row().get_columns().size());
           ++i) {
         struct TypeVisitor final : DataTypeVisitor {
-          sqlite3_stmt* m_statement;
+          ::sqlite3_stmt* m_statement;
           int m_index;
           std::vector<RawColumn>* m_columns;
 

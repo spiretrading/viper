@@ -18,7 +18,7 @@ namespace Viper {
     //! The maximum number of rows to return.
     int m_value;
 
-    Limit(int value);
+    explicit Limit(int value);
   };
 
   //! Returns a limit on the number of rows produced by a query.

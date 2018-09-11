@@ -201,25 +201,25 @@ namespace Viper {
   };
 
   template<>
-  struct ToSql<Blob> {
-    void operator ()(Blob value, std::string& column) const {
+  struct ToSql<std::vector<std::byte>> {
+    void operator ()(const std::vector<std::byte>& value,
+        std::string& column) const {
       static constexpr auto HEX_DIGITS = "0123456789ABCDEF";
       column += "X'";
-      for(auto i = std::size_t(0); i != value.m_size; ++i) {
-        column += HEX_DIGITS[static_cast<unsigned char>(
-          value.m_data[i] >> 4) & 0xF];
-        column += HEX_DIGITS[static_cast<unsigned char>(value.m_data[i]) & 0xF];
+      for(auto& byte : value) {
+        column += HEX_DIGITS[static_cast<unsigned char>(byte >> 4) & 0xF];
+        column += HEX_DIGITS[static_cast<unsigned char>(byte) & 0xF];
       }
       column += '\'';
     }
   };
 
   template<>
-  struct FromSql<Blob> {
+  struct FromSql<std::vector<std::byte>> {
     auto operator ()(const RawColumn& column) const {
-      auto data = static_cast<std::byte*>(std::malloc(column.m_size));
-      std::memcpy(data, column.m_data, column.m_size);
-      return Blob{data, column.m_size};
+      auto value = std::vector<std::byte>(column.m_size);
+      std::memcpy(value.data(), column.m_data, column.m_size);
+      return value;
     }
   };
 
