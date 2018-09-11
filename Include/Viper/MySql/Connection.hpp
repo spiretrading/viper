@@ -140,8 +140,8 @@ namespace Viper::MySql {
   inline bool Connection::has_table(std::string_view name) {
     auto escaped_name = std::string();
     escape(name, escaped_name);
-    auto query = std::string("SHOW TABLES IN " + m_database + " LIKE '" +
-      escaped_name + "'");
+    auto query = std::string("SHOW TABLES IN " + m_database + " LIKE " +
+      escaped_name);
     auto result = ::mysql_query(m_handle, query.c_str());
     if(result != 0) {
       throw ExecuteException(::mysql_error(m_handle));

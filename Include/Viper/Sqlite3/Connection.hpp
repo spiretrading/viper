@@ -99,7 +99,7 @@ namespace Viper::Sqlite3 {
   inline bool Connection::has_table(std::string_view name) {
     auto escaped_name = std::string();
     escape(name, escaped_name);
-    auto query = "PRAGMA table_info('" + escaped_name + "');";
+    auto query = "PRAGMA table_info(" + escaped_name + ");";
     auto statement = static_cast<::sqlite3_stmt*>(nullptr);
     auto result = ::sqlite3_prepare_v2(m_handle, query.c_str(), -1, &statement,
       nullptr);
