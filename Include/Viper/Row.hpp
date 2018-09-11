@@ -496,8 +496,8 @@ namespace Viper {
       [=] (auto& value) -> decltype(auto) {
         return accessor(value);
       },
-      [=] (auto& value, auto& column) {
-        accessor(value) = column;
+      [=] (auto& value, auto&& column) {
+        accessor(value) = std::forward<decltype(column)>(column);
       });
   }
 
