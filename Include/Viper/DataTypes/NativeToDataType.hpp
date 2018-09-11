@@ -12,7 +12,7 @@ namespace Viper {
 
   //! Returns the SQL data type that best represents a native C++ type.
   template<typename T>
-  inline const auto native_to_data_type_v = IntegerDataType(true, 0);
+  inline const auto native_to_data_type_v = std::enable_if_t<false>();
 
   template<typename T>
   inline const auto native_to_data_type_v<std::optional<T>> =

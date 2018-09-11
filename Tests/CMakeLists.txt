@@ -36,10 +36,12 @@ endif()
 file(GLOB source_files ./Source/*.cpp)
 file(GLOB expressions_source_files ./Source/Expressions/*.cpp)
 source_group("Source Files\\Expressions" FILES ${expressions_source_files})
+file(GLOB mysql_source_files ./Source/MySql/*.cpp)
+source_group("Source Files\\MySql" FILES ${mysql_source_files})
 file(GLOB sqlite_source_files ./Source/Sqlite3/*.cpp)
 source_group("Source Files\\Sqlite3" FILES ${sqlite_source_files})
 
 add_executable(viper_tester ${source_files} ${expressions_source_files}
-  ${sqlite_source_files})
+  ${mysql_source_files} ${sqlite_source_files})
 target_link_libraries(viper_tester ./ThirdParty/sqlite/sqlite3)
 add_custom_command(TARGET viper_tester POST_BUILD COMMAND viper_tester)

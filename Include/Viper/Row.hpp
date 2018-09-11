@@ -436,7 +436,8 @@ namespace Viper {
   template<typename G, typename S>
   std::enable_if_t<is_getter_v<G, T>, Row<T>> Row<T>::add_column(
       std::string name, G&& getter, S&& setter) const {
-    return add_column(std::move(name), native_to_data_type_v<Column>,
+    return add_column(std::move(name),
+      native_to_data_type_v<getter_result_t<G, T>>,
       make_getter<Type>(std::forward<G>(getter)),
       make_setter<Type, getter_result_t<G, T>>(std::forward<S>(setter)));
   }
