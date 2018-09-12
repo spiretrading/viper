@@ -1,6 +1,7 @@
 #ifndef VIPER_MYSQL_QUERY_BUILDER_HPP
 #define VIPER_MYSQL_QUERY_BUILDER_HPP
 #include <string>
+#include <vector>
 #include "Viper/CreateTableStatement.hpp"
 #include "Viper/DeleteStatement.hpp"
 #include "Viper/InsertRangeStatement.hpp"
@@ -49,8 +50,18 @@ namespace Details {
       query += "IF NOT EXISTS ";
     }
     query += statement.get_name() + '(';
-    Details::append_list(statement.get_row().get_columns(), query,
-      [] (auto& column, auto& query) {
+    std::vector<Column> columns;
+    for(auto& column : statement.get_row().get_columns()) {
+      auto i = std::find_if(columns.begin(), columns.end(),
+        [&] (auto& c) {
+          return c.m_name == column.m_name;
+        });
+      if(i == columns.end()) {
+        columns.push_back(column);
+      }
+    }
+    Details::append_list(columns, query,
+      [&] (auto& column, auto& query) {
         query += column.m_name + ' ' + get_name(*column.m_type);
         if(!column.m_is_nullable) {
           query += " NOT NULL";
