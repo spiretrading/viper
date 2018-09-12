@@ -12,7 +12,9 @@ namespace Viper::MySql {
       std::string m_result;
 
       void visit(const BlobDataType& type) override {
-        if(type.get_max_size() <= 255) {
+        if(type.get_max_size() < 0) {
+          m_result = "BLOB";
+        } else if(type.get_max_size() <= 255) {
           m_result = "TINYBLOB";
         } else if(type.get_max_size() <= 65535) {
           m_result = "BLOB";
