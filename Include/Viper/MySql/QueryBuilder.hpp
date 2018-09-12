@@ -50,18 +50,8 @@ namespace Details {
       query += "IF NOT EXISTS ";
     }
     query += statement.get_name() + '(';
-    std::vector<Column> columns;
-    for(auto& column : statement.get_row().get_columns()) {
-      auto i = std::find_if(columns.begin(), columns.end(),
-        [&] (auto& c) {
-          return c.m_name == column.m_name;
-        });
-      if(i == columns.end()) {
-        columns.push_back(column);
-      }
-    }
-    Details::append_list(columns, query,
-      [&] (auto& column, auto& query) {
+    Details::append_list(statement.get_row().get_columns(), query,
+      [] (auto& column, auto& query) {
         query += column.m_name + ' ' + get_name(*column.m_type);
         if(!column.m_is_nullable) {
           query += " NOT NULL";
