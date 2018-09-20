@@ -73,8 +73,8 @@ namespace Details {
       } else {
         query += "CREATE INDEX";
       }
-      query += " IF NOT EXISTS " + current_index.m_name + " ON " +
-        statement.get_name() + "(";
+      query += " IF NOT EXISTS " + statement.get_name() + "_" +
+        current_index.m_name + " ON " + statement.get_name() + "(";
       Details::append_list(current_index.m_columns, query);
       query += ");";
     }
