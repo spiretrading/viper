@@ -240,6 +240,8 @@ namespace Viper::MySql {
       m_handle = nullptr;
       throw ConnectException(error);
     }
+    ::my_bool reconnect = 1;
+    ::mysql_options(m_handle, MYSQL_OPT_RECONNECT, &reconnect);
   }
 
   inline void Connection::close() {
