@@ -8,6 +8,7 @@
 #include "Viper/ExecuteException.hpp"
 #include "Viper/InsertRangeStatement.hpp"
 #include "Viper/SelectStatement.hpp"
+#include "Viper/UpdateStatement.hpp"
 #include "Viper/MySql/DataTypeName.hpp"
 #include "Viper/MySql/QueryBuilder.hpp"
 
@@ -42,41 +43,66 @@ namespace Viper::MySql {
 
       //! Executes a raw SQL query.
       /*!
-        \param s The statement to execute.
+        \param statement The statement to execute.
       */
-      void execute(std::string_view s);
+      void execute(std::string_view statement);
 
       //! Executes a create table statement.
       /*!
-        \param s The statement to execute.
+        \param statement The statement to execute.
       */
       template<typename T>
-      void execute(const CreateTableStatement<T>& s);
+      void execute(const CreateTableStatement<T>& statement);
 
       //! Executes a delete statement.
       /*!
-        \param s The statement to execute.
+        \param statement The statement to execute.
       */
-      void execute(const DeleteStatement& s);
+      void execute(const DeleteStatement& statement);
 
       //! Executes an insert range statement.
       /*!
-        \param s The statement to execute.
+        \param statement The statement to execute.
       */
       template<typename T, typename B, typename E>
-      void execute(const InsertRangeStatement<T, B, E>& s);
+      void execute(const InsertRangeStatement<T, B, E>& statement);
+
+      //! Executes an update statement.
+      /*!
+        \param statement The statement to execute.
+      */
+      template<typename R>
+      void execute(const UpdateStatement<R>& statement);
 
       //! Executes a select statement.
       /*!
-        \param s The statement to execute.
+        \param statement The statement to execute.
       */
       template<typename T, typename D>
-      void execute(const SelectStatement<T, D>& s);
+      void execute(const SelectStatement<T, D>& statement);
 
-      //! Opens a connection to the SQLite database.
+      //! Starts a transaction.
+      /*!
+        \param statement The statement to execute.
+      */
+      void execute(const StartTransactionStatement& statement);
+
+      //! Commits a transaction.
+      /*!
+        \param statement The statement to execute.
+      */
+      void execute(const CommitStatement& statement);
+
+      //! Rolls back a transaction.
+      /*!
+        \param statement The statement to execute.
+      */
+      void execute(const RollbackStatement& statement);
+
+      //! Opens a connection to the MySQL database.
       void open();
 
-      //! Closes the connection to the SQLite database.
+      //! Closes the connection to the MySQL database.
       void close();
 
     private:
@@ -114,11 +140,11 @@ namespace Viper::MySql {
     close();
   }
 
-  inline void Connection::execute(std::string_view s) {
-    if(s.empty()) {
+  inline void Connection::execute(std::string_view statement) {
+    if(statement.empty()) {
       return;
     }
-    if(::mysql_query(m_handle, s.data()) != 0) {
+    if(::mysql_query(m_handle, statement.data()) != 0) {
       throw ExecuteException(::mysql_error(m_handle));
     }
     while(true) {
@@ -156,30 +182,30 @@ namespace Viper::MySql {
   }
 
   template<typename T>
-  void Connection::execute(const CreateTableStatement<T>& s) {
-    std::string query;
-    build_query(s, query);
+  void Connection::execute(const CreateTableStatement<T>& statement) {
+    auto query = std::string();
+    build_query(statement, query);
     execute(query);
   }
 
-  inline void Connection::execute(const DeleteStatement& s) {
-    std::string query;
-    build_query(s, query);
+  inline void Connection::execute(const DeleteStatement& statement) {
+    auto query = std::string();
+    build_query(statement, query);
     execute(query);
   }
 
   template<typename T, typename B, typename E>
-  void Connection::execute(const InsertRangeStatement<T, B, E>& s) {
+  void Connection::execute(const InsertRangeStatement<T, B, E>& statement) {
     constexpr auto MAX_WRITES = std::size_t(300);
-    auto count = std::distance(s.get_begin(), s.get_end());
+    auto count = std::distance(statement.get_begin(), statement.get_end());
     execute("START TRANSACTION;");
-    auto i = s.get_begin();
+    auto i = statement.get_begin();
     while(count != 0) {
       auto sub_count = std::min<std::size_t>(MAX_WRITES, count);
       auto e = i;
       std::advance(e, sub_count);
-      auto sub_range = insert(s.get_row(), s.get_table(), i, e);
-      std::string query;
+      auto sub_range = insert(statement.get_row(), statement.get_table(), i, e);
+      auto query = std::string();
       build_query(sub_range, query);
       execute(query);
       i = e;
@@ -188,10 +214,17 @@ namespace Viper::MySql {
     execute("COMMIT;");
   }
 
+  template<typename R>
+  void Connection::execute(const UpdateStatement<R>& statement) {
+    auto query = std::string();
+    build_query(statement, query);
+    execute(query);
+  }
+
   template<typename T, typename D>
-  void Connection::execute(const SelectStatement<T, D>& s) {
-    std::string query;
-    build_query(s, query);
+  void Connection::execute(const SelectStatement<T, D>& statement) {
+    auto query = std::string();
+    build_query(statement, query);
     if(query.empty()) {
       return;
     }
@@ -204,23 +237,42 @@ namespace Viper::MySql {
       throw ExecuteException(::mysql_error(m_handle));
     }
     auto count = ::mysql_num_fields(rows);
-    auto destination = s.get_first();
+    auto destination = statement.get_first();
     std::vector<RawColumn> columns;
-    columns.reserve(s.get_row().get_columns().size());
+    columns.reserve(statement.get_row().get_columns().size());
     while(auto row = ::mysql_fetch_row(rows)) {
       columns.clear();
       auto lengths = ::mysql_fetch_lengths(rows);
-      for(auto i = 0; i != static_cast<int>(s.get_row().get_columns().size());
+      for(auto i = 0;
+          i != static_cast<int>(statement.get_row().get_columns().size());
           ++i) {
         columns.push_back(RawColumn{
           row[i], static_cast<std::size_t>(lengths[i])});
       }
       auto value = typename SelectStatement<T, D>::Row::Type();
-      s.get_row().extract(columns.data(), value);
+      statement.get_row().extract(columns.data(), value);
       *destination = std::move(value);
       ++destination;
     }
     ::mysql_free_result(rows);
+  }
+
+  inline void Connection::execute(const StartTransactionStatement& statement) {
+    auto query = std::string();
+    build_query(statement, query);
+    execute(query);
+  }
+
+  inline void Connection::execute(const CommitStatement& statement) {
+    auto query = std::string();
+    build_query(statement, query);
+    execute(query);
+  }
+
+  inline void Connection::execute(const RollbackStatement& statement) {
+    auto query = std::string();
+    build_query(statement, query);
+    execute(query);
   }
 
   inline void Connection::open() {

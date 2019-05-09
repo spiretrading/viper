@@ -69,40 +69,40 @@ namespace Viper {
   //! Returns the symbol used to represent an infix operator.
   inline const std::string& get_symbol(InfixOperator::Type t) {
     if(t == InfixOperator::Type::ADD) {
-      static const std::string SYMBOL = "+";
+      static const auto SYMBOL = std::string("+");
       return SYMBOL;
     } else if(t == InfixOperator::Type::SUBTRACT) {
-      static const std::string SYMBOL = "-";
+      static const auto SYMBOL = std::string("-");
       return SYMBOL;
     } else if(t == InfixOperator::Type::MULTIPLY) {
-      static const std::string SYMBOL = "*";
+      static const auto SYMBOL = std::string("*");
       return SYMBOL;
     } else if(t == InfixOperator::Type::DIVIDE) {
-      static const std::string SYMBOL = "/";
+      static const auto SYMBOL = std::string("/");
       return SYMBOL;
     } else if(t == InfixOperator::Type::LESS_THAN) {
-      static const std::string SYMBOL = "<";
+      static const auto SYMBOL = std::string("<");
       return SYMBOL;
     } else if(t == InfixOperator::Type::LESS_THAN_OR_EQUAL) {
-      static const std::string SYMBOL = "<=";
+      static const auto SYMBOL = std::string("<=");
       return SYMBOL;
     } else if(t == InfixOperator::Type::EQUAL) {
-      static const std::string SYMBOL = "=";
+      static const auto SYMBOL = std::string("=");
       return SYMBOL;
     } else if(t == InfixOperator::Type::NOT_EQUAL) {
-      static const std::string SYMBOL = "<>";
+      static const auto SYMBOL = std::string("<>");
       return SYMBOL;
     } else if(t == InfixOperator::Type::GREATER_THAN_OR_EQUAL) {
-      static const std::string SYMBOL = ">=";
+      static const auto SYMBOL = std::string(">=");
       return SYMBOL;
     } else if(t == InfixOperator::Type::GREATER_THAN) {
-      static const std::string SYMBOL = ">";
+      static const auto SYMBOL = std::string(">");
       return SYMBOL;
     } else if(t == InfixOperator::Type::AND) {
-      static const std::string SYMBOL = "AND";
+      static const auto SYMBOL = std::string("AND");
       return SYMBOL;
     } else if(t == InfixOperator::Type::OR) {
-      static const std::string SYMBOL = "OR";
+      static const auto SYMBOL = std::string("OR");
       return SYMBOL;
     } else {
       throw std::runtime_error("Invalid operator.");

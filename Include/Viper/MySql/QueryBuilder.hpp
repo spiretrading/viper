@@ -2,12 +2,15 @@
 #define VIPER_MYSQL_QUERY_BUILDER_HPP
 #include <string>
 #include <vector>
+#include "Viper/CommitStatement.hpp"
 #include "Viper/CreateTableStatement.hpp"
 #include "Viper/DeleteStatement.hpp"
 #include "Viper/InsertRangeStatement.hpp"
 #include "Viper/MySql/DataTypeName.hpp"
+#include "Viper/RollbackStatement.hpp"
 #include "Viper/SelectClause.hpp"
 #include "Viper/SelectStatement.hpp"
+#include "Viper/StartTransactionStatement.hpp"
 
 namespace Viper::MySql {
 namespace Details {
@@ -129,6 +132,22 @@ namespace Details {
     query += ';';
   }
 
+  //! Builds an update statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  template<typename R>
+  void build_query(const UpdateStatement<R>& statement, std::string& query) {
+    query += "UPDATE ";
+    query += statement.get_table();
+    query += " SET ";
+    query += std::get<0>(statement.get_set());
+    query += " = ";
+    std::get<1>(statement.get_set()).append_query(query);
+    query += ';';
+  }
+
   //! Builds a select query clause.
   /*!
     \param clause The clause to build.
@@ -182,6 +201,36 @@ namespace Details {
       std::string& query) {
     build_query(statement.get_clause(), query);
     query += ';';
+  }
+
+  //! Builds a start transaction statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  inline void build_query(const StartTransactionStatement& statement,
+      std::string& query) {
+    query += "BEGIN;";
+  }
+
+  //! Builds a commit statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  inline void build_query(const CommitStatement& statement,
+      std::string& query) {
+    query += "COMMIT;";
+  }
+
+  //! Builds a rollback statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  inline void build_query(const RollbackStatement& statement,
+      std::string& query) {
+    query += "ROLLBACK;";
   }
 }
 
