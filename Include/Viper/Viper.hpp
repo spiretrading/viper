@@ -10,10 +10,11 @@
 #include "Viper/DeleteStatement.hpp"
 #include "Viper/ExecuteException.hpp"
 #include "Viper/InsertRangeStatement.hpp"
-#include "Viper/SelectStatement.hpp"
-#include "Viper/StartTransactionStatement.hpp"
 #include "Viper/RollbackStatement.hpp"
 #include "Viper/Row.hpp"
+#include "Viper/SelectStatement.hpp"
+#include "Viper/StartTransactionStatement.hpp"
+#include "Viper/Transaction.hpp"
 #include "Viper/Utilities.hpp"
 #include "Viper/UpdateStatement.hpp"
 
