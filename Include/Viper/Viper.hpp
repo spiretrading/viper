@@ -17,5 +17,6 @@
 #include "Viper/Transaction.hpp"
 #include "Viper/Utilities.hpp"
 #include "Viper/UpdateStatement.hpp"
+#include "Viper/UpsertStatement.hpp"
 
 #endif
