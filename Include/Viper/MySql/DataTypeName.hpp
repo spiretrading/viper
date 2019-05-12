@@ -25,6 +25,10 @@ namespace Viper::MySql {
         }
       }
 
+      void visit(const DateTimeDataType& type) override {
+        m_result = "DATETIME";
+      }
+
       void visit(const FloatDataType& type) override {
         if(type.get_size() == 4) {
           m_result = "FLOAT";

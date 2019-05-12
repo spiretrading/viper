@@ -71,8 +71,7 @@ namespace Viper::MySql {
       /*!
         \param statement The statement to execute.
       */
-      template<typename R>
-      void execute(const UpdateStatement<R>& statement);
+      void execute(const UpdateStatement& statement);
 
       //! Executes a select statement.
       /*!
@@ -214,8 +213,7 @@ namespace Viper::MySql {
     execute("COMMIT;");
   }
 
-  template<typename R>
-  void Connection::execute(const UpdateStatement<R>& statement) {
+  void Connection::execute(const UpdateStatement& statement) {
     auto query = std::string();
     build_query(statement, query);
     execute(query);

@@ -4,8 +4,8 @@
 #include <cstring>
 #include <optional>
 #include <string>
-#include <string_view>
 #include "Viper/DataTypes/BlobDataType.hpp"
+#include "Viper/DataTypes/DateTimeDataType.hpp"
 #include "Viper/Utilities.hpp"
 
 namespace Viper {
@@ -241,6 +241,20 @@ namespace Viper {
         return std::nullopt;
       }
       return from_sql<T>(column);
+    }
+  };
+
+  template<>
+  struct ToSql<DateTime> {
+    void operator ()(DateTime value, std::string& column) const {
+      column += to_string(value);
+    }
+  };
+
+  template<>
+  struct FromSql<DateTime> {
+    auto operator ()(const RawColumn& column) const {
+      return DateTime();
     }
   };
 }

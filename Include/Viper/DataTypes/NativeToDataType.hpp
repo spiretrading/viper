@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include "Viper/DataTypes/BlobDataType.hpp"
+#include "Viper/DataTypes/DateTimeDataType.hpp"
 #include "Viper/DataTypes/FloatDataType.hpp"
 #include "Viper/DataTypes/IntegerDataType.hpp"
 #include "Viper/DataTypes/VarCharDataType.hpp"
@@ -21,6 +22,9 @@ namespace Viper {
   template<>
   inline const auto native_to_data_type_v<std::vector<std::byte>> =
     BlobDataType();
+
+  template<>
+  inline const auto native_to_data_type_v<DateTime> = DateTimeDataType();
 
   template<>
   inline const auto native_to_data_type_v<bool> = IntegerDataType(false, 1);

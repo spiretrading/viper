@@ -15,6 +15,10 @@ namespace Viper::Sqlite3 {
         m_result = "BLOB";
       }
 
+      void visit(const DateTimeDataType& type) override {
+        m_result = "DATETIME";
+      }
+
       void visit(const FloatDataType& type) override {
         m_result = "REAL";
       }

@@ -4,6 +4,7 @@
 namespace Viper {
   class BlobDataType;
   class DataType;
+  class DateTimeDataType;
   class FloatDataType;
   class IntegerDataType;
   class VarCharDataType;
@@ -16,6 +17,8 @@ namespace Viper {
       virtual void visit(const BlobDataType& type);
 
       virtual void visit(const DataType& type);
+
+      virtual void visit(const DateTimeDataType& type);
 
       virtual void visit(const FloatDataType& type);
 
