@@ -73,6 +73,13 @@ namespace Viper::MySql {
       */
       void execute(const UpdateStatement& statement);
 
+      //! Executes an upsert statement.
+      /*!
+        \param statement The statement to execute.
+      */
+      template<typename R, typename B, typename E>
+      void execute(const UpsertStatement<R, B, E>& statement);
+
       //! Executes a select statement.
       /*!
         \param statement The statement to execute.
@@ -204,6 +211,26 @@ namespace Viper::MySql {
       auto e = i;
       std::advance(e, sub_count);
       auto sub_range = insert(statement.get_row(), statement.get_table(), i, e);
+      auto query = std::string();
+      build_query(sub_range, query);
+      execute(query);
+      i = e;
+      count -= sub_count;
+    }
+    execute("COMMIT;");
+  }
+
+  template<typename T, typename B, typename E>
+  void Connection::execute(const UpsertStatement<T, B, E>& statement) {
+    constexpr auto MAX_WRITES = std::size_t(300);
+    auto count = std::distance(statement.get_begin(), statement.get_end());
+    execute("START TRANSACTION;");
+    auto i = statement.get_begin();
+    while(count != 0) {
+      auto sub_count = std::min<std::size_t>(MAX_WRITES, count);
+      auto e = i;
+      std::advance(e, sub_count);
+      auto sub_range = upsert(statement.get_row(), statement.get_table(), i, e);
       auto query = std::string();
       build_query(sub_range, query);
       execute(query);

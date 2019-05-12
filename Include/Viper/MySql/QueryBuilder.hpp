@@ -11,6 +11,7 @@
 #include "Viper/SelectClause.hpp"
 #include "Viper/SelectStatement.hpp"
 #include "Viper/StartTransactionStatement.hpp"
+#include "Viper/UpsertStatement.hpp"
 
 namespace Viper::MySql {
 namespace Details {
@@ -142,10 +143,54 @@ namespace Details {
     query += "UPDATE ";
     query += statement.get_table();
     query += " SET ";
-    query += std::get<0>(statement.get_set());
+    query += statement.get_set().m_column;
     query += " = ";
-    std::get<1>(statement.get_set()).append_query(query);
+    statement.get_set().m_value.append_query(query);
+    if(statement.get_where()) {
+      query += "WHERE ";
+      statement.get_where()->append_query(query);
+    }
     query += ';';
+  }
+
+  //! Builds an upsert query statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  template<typename T, typename B, typename E>
+  void build_query(const UpsertStatement<T, B, E>& statement,
+      std::string& query) {
+    static_assert(false, "Not implemented.");
+/* TODO
+    if(statement.get_begin() == statement.get_end() ||
+        statement.get_row().get_columns().empty()) {
+      return;
+    }
+    query += "INSERT INTO ";
+    query += statement.get_table();
+    query += " (";
+    Details::append_list(statement.get_row().get_columns(), query,
+      [] (auto& column, auto& query) {
+        query += column.m_name;
+      });
+    query += ") VALUES ";
+    Details::append_list(statement.get_begin(), statement.get_end(), query,
+      [&] (auto& column, auto& query) {
+        query += '(';
+        auto prepend_comma = false;
+        for(auto i = 0; i <
+            static_cast<int>(statement.get_row().get_columns().size()); ++i) {
+          if(prepend_comma) {
+            query += ',';
+          }
+          prepend_comma = true;
+          statement.get_row().append_value(column, i, query);
+        }
+        query += ')';
+      });
+    query += ';';
+*/
   }
 
   //! Builds a select query clause.

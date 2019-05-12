@@ -50,7 +50,7 @@ namespace Viper {
   */
   template<typename T, typename D>
   auto select(Row<T> row, FromClause from, D first) {
-    std::vector<std::string> columns;
+    auto columns = std::vector<std::string>();
     for(auto& c : row.get_columns()) {
       columns.push_back(c.m_name);
     }
@@ -67,7 +67,7 @@ namespace Viper {
   */
   template<typename T, typename D, typename C1>
   auto select(Row<T> row, FromClause from, C1&& c1, D first) {
-    std::vector<std::string> columns;
+    auto columns = std::vector<std::string>();
     for(auto& c : row.get_columns()) {
       columns.push_back(c.m_name);
     }
@@ -85,7 +85,7 @@ namespace Viper {
   */
   template<typename T, typename D, typename C1, typename C2>
   auto select(Row<T> row, FromClause from, C1&& c1, C2&& c2, D first) {
-    std::vector<std::string> columns;
+    auto columns = std::vector<std::string>();
     for(auto& c : row.get_columns()) {
       columns.push_back(c.m_name);
     }
@@ -104,7 +104,7 @@ namespace Viper {
   */
   template<typename T, typename D, typename C1, typename C2, typename C3>
   auto select(Row<T> row, FromClause from, C1&& c1, C2&& c2, C3&& c3, D first) {
-    std::vector<std::string> columns;
+    auto columns = std::vector<std::string>();
     for(auto& c : row.get_columns()) {
       columns.push_back(c.m_name);
     }
