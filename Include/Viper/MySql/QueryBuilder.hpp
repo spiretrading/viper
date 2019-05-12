@@ -137,8 +137,8 @@ namespace Details {
     \param statement The statement to build.
     \param query The string to store the query in.
   */
-  template<typename R>
-  void build_query(const UpdateStatement<R>& statement, std::string& query) {
+  inline void build_query(const UpdateStatement& statement,
+      std::string& query) {
     query += "UPDATE ";
     query += statement.get_table();
     query += " SET ";
