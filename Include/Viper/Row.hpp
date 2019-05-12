@@ -74,6 +74,12 @@ namespace Viper {
       //! Constructs an empty row.
       Row();
 
+      //! Constructs a row with one column.
+      /*!
+        \param name The name of the column.
+      */
+      Row(std::string name);
+
       //! Returns the list of columns.
       const std::vector<Column>& get_columns() const;
 
@@ -389,6 +395,12 @@ namespace Viper {
   template<typename T>
   Row<T>::Row()
       : m_data(std::make_shared<Data>()) {}
+
+  template<typename T>
+  Row<T>::Row(std::string name) {
+    auto clone = add_column(std::move(name));
+    m_data = std::move(clone.m_data);
+  }
 
   template<typename T>
   const std::vector<Column>& Row<T>::get_columns() const {
