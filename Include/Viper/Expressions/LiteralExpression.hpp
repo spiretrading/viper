@@ -25,7 +25,7 @@ namespace Viper {
   //! Makes a literal expression from a raw value.
   template<typename T>
   Expression literal(const T& value) {
-    std::string v;
+    auto v = std::string();
     to_sql(value, v);
     return Expression(std::make_shared<LiteralExpression>(std::move(v)));
   }
