@@ -11,6 +11,7 @@ if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX /bigobj /std:c++17")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  /ignore:4098")
   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
   add_definitions(-D_WIN32_WINNT=0x0501)
   add_definitions(-DWIN32_LEAN_AND_MEAN)
@@ -43,5 +44,10 @@ source_group("Source Files\\Sqlite3" FILES ${sqlite_source_files})
 
 add_executable(viper_tester ${source_files} ${expressions_source_files}
   ${mysql_source_files} ${sqlite_source_files})
-target_link_libraries(viper_tester ./ThirdParty/sqlite/sqlite3)
+target_link_libraries(viper_tester
+  ./ThirdParty/sqlite/sqlite3)
+if(MSVC)
+target_link_libraries(viper_tester
+  ./ThirdParty/mysql-connector-c-6.1.11-win32/lib/libmysql)
+endif()
 add_custom_command(TARGET viper_tester POST_BUILD COMMAND viper_tester)

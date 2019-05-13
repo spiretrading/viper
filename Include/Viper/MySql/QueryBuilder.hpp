@@ -22,8 +22,9 @@ namespace Details {
       if(prepend_comma) {
         query += ',';
       }
-      prepend_comma = true;
+      auto presize = query.size();
       f(*i, query);
+      prepend_comma = query.size() != presize;
     }
   }
 
@@ -161,8 +162,6 @@ namespace Details {
   template<typename T, typename B, typename E>
   void build_query(const UpsertStatement<T, B, E>& statement,
       std::string& query) {
-    static_assert(false, "Not implemented.");
-/* TODO
     if(statement.get_begin() == statement.get_end() ||
         statement.get_row().get_columns().empty()) {
       return;
@@ -189,8 +188,26 @@ namespace Details {
         }
         query += ')';
       });
+    query += " ON DUPLICATE KEY UPDATE ";
+    auto indicies = std::vector<std::string>();
+    for(auto& index : statement.get_row().get_indexes()) {
+      if(index.m_is_unique) {
+        indicies.insert(indicies.end(), index.m_columns.begin(),
+          index.m_columns.end());
+      }
+    }
+    Details::append_list(statement.get_row().get_columns(), query,
+      [&] (auto& column, auto& query) {
+        auto is_unique = std::find(indicies.begin(), indicies.end(),
+          column.m_name) != indicies.end();
+        if(!is_unique) {
+          query += column.m_name;
+          query += " = VALUES(";
+          query += column.m_name;
+          query += ")";
+        }
+      });
     query += ';';
-*/
   }
 
   //! Builds a select query clause.

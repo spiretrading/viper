@@ -71,7 +71,7 @@ namespace Viper {
     \param table The name of the table to update.
     \param set The set clause.
   */
-  auto update(std::string table, SetClause set) {
+  inline auto update(std::string table, SetClause set) {
     return UpdateStatement(std::move(table), std::move(set));
   }
 
@@ -81,7 +81,7 @@ namespace Viper {
     \param set The set clause.
     \param where The where clause.
   */
-  auto update(std::string table, SetClause set, Expression where) {
+  inline auto update(std::string table, SetClause set, Expression where) {
     return UpdateStatement(std::move(table), std::move(set),
       std::move(where));
   }
