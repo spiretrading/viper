@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include "Viper/Expressions/Expression.hpp"
+#include "Viper/Expressions/LiteralExpression.hpp"
 
 namespace Viper {
 

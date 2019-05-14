@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <ctime>
 #include <string>
+#include <time.h>
 #include "Viper/DataTypes/DataType.hpp"
 
 namespace Viper {
@@ -108,8 +109,8 @@ namespace Viper {
     m_ticks = TICKS_PER_SECOND * static_cast<std::uint64_t>(
       ::_mkgmtime(&tm)) + milliseconds;
 #else
-    m_ticks = TICKS_PER_SECOND * static_cast<std::uint64_t>(
-      std::timegm(&tm)) + milliseconds;
+    m_ticks = TICKS_PER_SECOND * static_cast<std::uint64_t>(::timegm(&tm)) +
+      milliseconds;
 #endif
   }
 
