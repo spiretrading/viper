@@ -80,6 +80,17 @@ namespace Viper {
     return buffer;
   }
 
+  //! Converts a DateTime to a std::tm struct.
+  /*!
+    \param date_time The DateTime to convert.
+    \return The std::tm representation of the <i>date_time</i>.
+  */
+  inline std::tm to_tm(DateTime date_time) {
+    auto tm = std::time_t(
+      date_time.get_ticks() / DateTime::TICKS_PER_SECOND);
+    return *std::gmtime(&tm);
+  }
+
   inline DateTime::DateTime()
       : m_ticks(0) {}
 
