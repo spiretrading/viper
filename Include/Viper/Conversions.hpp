@@ -254,7 +254,21 @@ namespace Viper {
   template<>
   struct FromSql<DateTime> {
     auto operator ()(const RawColumn& column) const {
-      return DateTime();
+      auto year = 0;
+      auto month = 0;
+      auto day = 0;
+      auto hour = 0;
+      auto minute = 0;
+      auto second = 0;
+      auto fraction = 0;
+      if(column.m_data[19] == '\0') {
+        std::sscanf(column.m_data, "%d-%d-%d %d:%d:%d", &year, &month, &day,
+          &hour, &minute, &second);
+      } else {
+        std::sscanf(column.m_data, "%d-%d-%d %d:%d:%d.%d", &year, &month, &day,
+          &hour, &minute, &second, &fraction);
+      }
+      return DateTime(year, month, day, hour, minute, second, fraction);
     }
   };
 }

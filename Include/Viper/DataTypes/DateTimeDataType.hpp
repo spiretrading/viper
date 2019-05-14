@@ -34,6 +34,12 @@ namespace Viper {
       //! Returns the number of ticks used to represent this DateTime.
       std::uint64_t get_ticks() const;
 
+      //! Tests if two DateTimes are equal.
+      bool operator ==(const DateTime& rhs) const;
+
+      //! Tests if two DateTimes are not equal.
+      bool operator !=(const DateTime& rhs) const;
+
     private:
       std::uint64_t m_ticks;
   };
@@ -81,7 +87,7 @@ namespace Viper {
       int second, int milliseconds) {
     auto tm = std::tm();
     tm.tm_year = year - 1900;
-    tm.tm_mon = month;
+    tm.tm_mon = month - 1;
     tm.tm_mday = day;
     tm.tm_hour = hour;
     tm.tm_min = minute;
@@ -98,6 +104,14 @@ namespace Viper {
 
   inline std::uint64_t DateTime::get_ticks() const {
     return m_ticks;
+  }
+
+  inline bool DateTime::operator ==(const DateTime& rhs) const {
+    return m_ticks == rhs.m_ticks;
+  }
+
+  inline bool DateTime::operator !=(const DateTime& rhs) const {
+    return !(*this == rhs);
   }
 
   inline std::unique_ptr<DataType> DateTimeDataType::clone() const {

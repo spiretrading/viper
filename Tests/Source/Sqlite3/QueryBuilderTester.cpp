@@ -112,3 +112,15 @@ TEST_CASE("test_blob", "[sqlite3_query_builder]") {
   c.execute(select(row, "test_table", &select_blob));
   REQUIRE(select_blob == blob);
 }
+
+TEST_CASE("test_date_time", "[sqlite3_query_builder]") {
+  auto row = Row<DateTime>("value");
+  auto c = Connection(":memory:");
+  c.open();
+  c.execute(create(row, "test_table"));
+  auto value = DateTime(2012, 5, 9, 2, 6, 14, 221);
+  c.execute(insert(row, "test_table", &value));
+  auto selected_value = DateTime();
+  c.execute(select(row, "test_table", &selected_value));
+  REQUIRE(selected_value == value);
+}

@@ -397,7 +397,8 @@ namespace Viper {
       : m_data(std::make_shared<Data>()) {}
 
   template<typename T>
-  Row<T>::Row(std::string name) {
+  Row<T>::Row(std::string name)
+      : m_data(std::make_shared<Data>()) {
     auto clone = add_column(std::move(name));
     m_data = std::move(clone.m_data);
   }
@@ -631,7 +632,7 @@ namespace Viper {
 
   template<typename T>
   Row<T> Row<T>::clone() const {
-    Row r;
+    auto r = Row();
     *r.m_data = *m_data;
     return r;
   }
