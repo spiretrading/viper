@@ -7,6 +7,7 @@ namespace Viper {
   class DateTimeDataType;
   class FloatDataType;
   class IntegerDataType;
+  class TextDataType;
   class VarCharDataType;
 
   //! Implements the visitor pattern for SQL data types.
@@ -23,6 +24,8 @@ namespace Viper {
       virtual void visit(const FloatDataType& type);
 
       virtual void visit(const IntegerDataType& type);
+
+      virtual void visit(const TextDataType& type);
 
       virtual void visit(const VarCharDataType& type);
 

@@ -27,11 +27,15 @@ namespace Viper::Sqlite3 {
         m_result = "INTEGER";
       }
 
+      void visit(const TextDataType& type) override {
+        m_result = "TEXT";
+      }
+
       void visit(const VarCharDataType& type) override {
         m_result = "TEXT";
       }
     };
-    Visitor v;
+    auto v = Visitor();
     t.apply(v);
     return v.m_result;
   }

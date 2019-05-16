@@ -6,6 +6,7 @@
 #include "Viper/DataTypes/DateTimeDataType.hpp"
 #include "Viper/DataTypes/FloatDataType.hpp"
 #include "Viper/DataTypes/IntegerDataType.hpp"
+#include "Viper/DataTypes/TextDataType.hpp"
 #include "Viper/DataTypes/VarCharDataType.hpp"
 
 #endif

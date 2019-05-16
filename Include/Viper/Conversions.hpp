@@ -124,6 +124,34 @@ namespace Viper {
   };
 
   template<>
+  struct ToSql<std::int16_t> {
+    void operator ()(std::int16_t value, std::string& column) const {
+      column += std::to_string(value);
+    }
+  };
+
+  template<>
+  struct FromSql<std::int16_t> {
+    std::int16_t operator ()(const RawColumn& column) const {
+      return std::stoi(column.m_data);
+    }
+  };
+
+  template<>
+  struct ToSql<std::uint16_t> {
+    void operator ()(std::uint16_t value, std::string& column) const {
+      column += std::to_string(value);
+    }
+  };
+
+  template<>
+  struct FromSql<std::uint16_t> {
+    std::uint16_t operator ()(const RawColumn& column) const {
+      return std::stoul(column.m_data);
+    }
+  };
+
+  template<>
   struct ToSql<std::int32_t> {
     void operator ()(std::int32_t value, std::string& column) const {
       column += std::to_string(value);

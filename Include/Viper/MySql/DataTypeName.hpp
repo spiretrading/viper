@@ -54,6 +54,10 @@ namespace Viper::MySql {
         }
       }
 
+      void visit(const TextDataType& type) override {
+        m_result = "TEXT";
+      }
+
       void visit(const VarCharDataType& type) override {
         if(type.get_max_size() < 0) {
           m_result = "VARCHAR(64000) BINARY";
@@ -63,7 +67,7 @@ namespace Viper::MySql {
         }
       }
     };
-    Visitor v;
+    auto v = Visitor();
     t.apply(v);
     return v.m_result;
   }
