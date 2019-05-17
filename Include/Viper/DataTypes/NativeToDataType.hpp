@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include "Viper/DataTypes/BlobDataType.hpp"
 #include "Viper/DataTypes/DateTimeDataType.hpp"
 #include "Viper/DataTypes/FloatDataType.hpp"
@@ -12,7 +13,7 @@
 namespace Viper {
 
   //! Returns the SQL data type that best represents a native C++ type.
-  template<typename T>
+  template<typename T, typename = void>
   inline const auto native_to_data_type_v = std::enable_if_t<false>();
 
   template<typename T>
@@ -72,6 +73,10 @@ namespace Viper {
 
   template<>
   inline const auto native_to_data_type_v<std::string> = VarCharDataType();
+
+  template<typename T>
+  inline const auto native_to_data_type_v<
+    T, std::enable_if_t<std::is_enum_v<T>>> = IntegerDataType(true, 4);
 }
 
 #endif

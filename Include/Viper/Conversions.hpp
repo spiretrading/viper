@@ -272,6 +272,20 @@ namespace Viper {
     }
   };
 
+  template<typename T>
+  struct ToSql<T, std::enable_if_t<std::is_enum_v<T>>> {
+    void operator ()(T value, std::string& column) const {
+      to_sql<std::int32_t>(static_cast<std::int32_t>(value), column);
+    }
+  };
+
+  template<typename T>
+  struct FromSql<T, std::enable_if_t<std::is_enum_v<T>>> {
+    auto operator ()(const RawColumn& column) const {
+      return static_cast<T>(from_sql<std::int32_t>(column));
+    }
+  };
+
   template<>
   struct ToSql<DateTime> {
     void operator ()(DateTime value, std::string& column) const {
