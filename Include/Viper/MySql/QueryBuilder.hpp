@@ -148,7 +148,7 @@ namespace Details {
     query += " = ";
     statement.get_set().m_value.append_query(query);
     if(statement.get_where()) {
-      query += "WHERE ";
+      query += " WHERE ";
       statement.get_where()->append_query(query);
     }
     query += ';';
