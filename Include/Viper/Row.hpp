@@ -169,8 +169,16 @@ namespace Viper {
       */
       template<typename F>
       std::enable_if_t<!is_accessor_v<F, Type> &&
-        !std::is_base_of_v<DataType, F>, Row> add_column(std::string name,
-        F accessor) const;
+          !std::is_base_of_v<DataType, F>, Row> add_column(std::string name,
+          F accessor) const {
+        return add_column(std::move(name),
+          [=] (auto& value) -> decltype(auto) {
+            return accessor(value);
+          },
+          [=] (auto& value, auto&& column) {
+            accessor(value) = std::forward<decltype(column)>(column);
+          });
+      }
 
       //! Appends a column tied to a function used to access the column.
       /*!
@@ -181,7 +189,15 @@ namespace Viper {
       */
       template<typename F>
       std::enable_if_t<!is_accessor_v<F, Type>, Row> add_column(
-        std::string name, const DataType& t, F accessor) const;
+          std::string name, const DataType& t, F accessor) const {
+        return add_column(std::move(name), t,
+          [=] (auto& value) -> decltype(auto) {
+            return accessor(value);
+          },
+          [=] (auto& value, auto&& column) {
+            accessor(value) = std::forward<decltype(column)>(column);
+          });
+      }
 
       //! Appends a column tied to a function used to access the column.
       /*!
@@ -233,7 +249,15 @@ namespace Viper {
       */
       template<typename R, typename F>
       std::enable_if_t<!is_accessor_v<F, Type>, Row> extend(const Row<R>& row,
-        F accessor) const;
+          F accessor) const {
+        return extend(row,
+          [=] (auto& value) -> decltype(auto) {
+            return accessor(value);
+          },
+          [=] (auto& value, auto&& column) {
+            accessor(value) = std::forward<decltype(column)>(column);
+          });
+      }
 
       //! Extends this row by appending another row.
       /*!
@@ -491,32 +515,6 @@ namespace Viper {
 
   template<typename T>
   template<typename F>
-  std::enable_if_t<!is_accessor_v<F, T> && !std::is_base_of_v<DataType, F>,
-      Row<T>> Row<T>::add_column(std::string name, F accessor) const {
-    return add_column(std::move(name),
-      [=] (auto& value) -> decltype(auto) {
-        return accessor(value);
-      },
-      [=] (auto& value, auto&& column) {
-        accessor(value) = std::forward<decltype(column)>(column);
-      });
-  }
-
-  template<typename T>
-  template<typename F>
-  std::enable_if_t<!is_accessor_v<F, T>, Row<T>> Row<T>::add_column(
-      std::string name, const DataType& t, F accessor) const {
-    return add_column(std::move(name), t,
-      [=] (auto& value) -> decltype(auto) {
-        return accessor(value);
-      },
-      [=] (auto& value, auto&& column) {
-        accessor(value) = std::forward<decltype(column)>(column);
-      });
-  }
-
-  template<typename T>
-  template<typename F>
   std::enable_if_t<is_accessor_v<F, T>, Row<T>> Row<T>::add_column(
       std::string name, F accessor) const {
     return add_column(name, accessor, accessor);
@@ -561,19 +559,6 @@ namespace Viper {
   std::enable_if_t<std::is_class_v<V>, Row<V>> Row<T>::extend(const Row<R>& row,
       U V::* member) const {
     return extend(row, make_getter(member), make_setter(member));
-  }
-
-  template<typename T>
-  template<typename R, typename F>
-  std::enable_if_t<!is_accessor_v<F, T>, Row<T>> Row<T>::extend(
-      const Row<R>& row, F accessor) const {
-    return extend(row,
-      [=] (auto& value) -> decltype(auto) {
-        return accessor(value);
-      },
-      [=] (auto& value, auto&& column) {
-        accessor(value) = std::forward<decltype(column)>(column);
-      });
   }
 
   template<typename T>
