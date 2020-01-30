@@ -220,6 +220,12 @@ namespace Viper::MySql {
     execute("COMMIT;");
   }
 
+  void Connection::execute(const UpdateStatement& statement) {
+    auto query = std::string();
+    build_query(statement, query);
+    execute(query);
+  }
+
   template<typename T, typename B, typename E>
   void Connection::execute(const UpsertStatement<T, B, E>& statement) {
     constexpr auto MAX_WRITES = std::size_t(300);
@@ -238,12 +244,6 @@ namespace Viper::MySql {
       count -= sub_count;
     }
     execute("COMMIT;");
-  }
-
-  void Connection::execute(const UpdateStatement& statement) {
-    auto query = std::string();
-    build_query(statement, query);
-    execute(query);
   }
 
   template<typename T, typename D>

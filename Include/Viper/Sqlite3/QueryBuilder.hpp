@@ -133,6 +133,83 @@ namespace Details {
     query += ';';
   }
 
+  //! Builds an update statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  inline void build_query(const UpdateStatement& statement,
+      std::string& query) {
+    query += "UPDATE ";
+    query += statement.get_table();
+    query += " SET ";
+    query += statement.get_set().m_column;
+    query += " = ";
+    statement.get_set().m_value.append_query(query);
+    if(statement.get_where()) {
+      query += " WHERE ";
+      statement.get_where()->append_query(query);
+    }
+    query += ';';
+  }
+
+  //! Builds an upsert query statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  template<typename T, typename B, typename E>
+  void build_query(const UpsertStatement<T, B, E>& statement,
+      std::string& query) {
+    if(statement.get_begin() == statement.get_end() ||
+        statement.get_row().get_columns().empty()) {
+      return;
+    }
+    query += "INSERT INTO ";
+    query += statement.get_table();
+    query += " (";
+    Details::append_list(statement.get_row().get_columns(), query,
+      [] (auto& column, auto& query) {
+        query += column.m_name;
+      });
+    query += ") VALUES ";
+    Details::append_list(statement.get_begin(), statement.get_end(), query,
+      [&] (auto& column, auto& query) {
+        query += '(';
+        auto prepend_comma = false;
+        for(auto i = 0; i <
+            static_cast<int>(statement.get_row().get_columns().size()); ++i) {
+          if(prepend_comma) {
+            query += ',';
+          }
+          prepend_comma = true;
+          statement.get_row().append_value(column, i, query);
+        }
+        query += ')';
+      });
+    query += " ON CONFLICT("
+    query += ") ";
+    auto indicies = std::vector<std::string>();
+    for(auto& index : statement.get_row().get_indexes()) {
+      if(index.m_is_unique) {
+        indicies.insert(indicies.end(), index.m_columns.begin(),
+          index.m_columns.end());
+      }
+    }
+    Details::append_list(statement.get_row().get_columns(), query,
+      [&] (auto& column, auto& query) {
+        auto is_unique = std::find(indicies.begin(), indicies.end(),
+          column.m_name) != indicies.end();
+        if(!is_unique) {
+          query += column.m_name;
+          query += " = VALUES(";
+          query += column.m_name;
+          query += ")";
+        }
+      });
+    query += ';';
+  }
+
   //! Builds a select query clause.
   /*!
     \param clause The clause to build.
