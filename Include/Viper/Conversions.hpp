@@ -147,7 +147,7 @@ namespace Viper {
   template<>
   struct FromSql<std::uint16_t> {
     std::uint16_t operator ()(const RawColumn& column) const {
-      return std::stoul(column.m_data);
+      return static_cast<std::uint16_t>(std::stoul(column.m_data));
     }
   };
 

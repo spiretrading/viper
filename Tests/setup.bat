@@ -12,15 +12,15 @@ if exist mysql-connector-c-6.1.11-win32 goto end_mysqlconnector_setup
 :end_mysqlconnector_setup
 
 if exist sqlite goto end_sqlite_setup
-  wget --no-check-certificate https://www.sqlite.org/2018/sqlite-amalgamation-3230100.zip
-  if not exist sqlite-amalgamation-3230100.zip goto end_sqlite_setup
-    unzip sqlite-amalgamation-3230100
-    mv sqlite-amalgamation-3230100 sqlite
+  wget --no-check-certificate https://www.sqlite.org/2020/sqlite-amalgamation-3310100.zip
+  if not exist sqlite-amalgamation-3310100.zip goto end_sqlite_setup
+    unzip sqlite-amalgamation-3310100
+    mv sqlite-amalgamation-3310100 sqlite
     pushd sqlite
     cl /c /O2 /DSQLITE_USE_URI=1 sqlite3.c
     lib sqlite3.obj
     popd
-    rm sqlite-amalgamation-3230100.zip
+    rm sqlite-amalgamation-3310100.zip
 :end_sqlite_setup
 
 if exist Catch2 goto end_catch_setup

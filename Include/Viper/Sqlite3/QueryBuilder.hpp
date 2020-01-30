@@ -13,12 +13,15 @@ namespace Details {
   template<typename B, typename E, typename F>
   void append_list(B b, E e, std::string& query, F&& f) {
     auto prepend_comma = false;
+    auto size = query.size();
     for(auto i = b; i != e; ++i) {
       if(prepend_comma) {
         query += ',';
       }
-      prepend_comma = true;
       f(*i, query);
+      if(!prepend_comma) {
+        prepend_comma = size != query.size();
+      }
     }
   }
 
@@ -187,8 +190,7 @@ namespace Details {
         }
         query += ')';
       });
-    query += " ON CONFLICT("
-    query += ") ";
+    query += " ON CONFLICT(";
     auto indicies = std::vector<std::string>();
     for(auto& index : statement.get_row().get_indexes()) {
       if(index.m_is_unique) {
@@ -196,15 +198,16 @@ namespace Details {
           index.m_columns.end());
       }
     }
+    Details::append_list(indicies, query);
+    query += ") DO UPDATE SET ";
     Details::append_list(statement.get_row().get_columns(), query,
       [&] (auto& column, auto& query) {
         auto is_unique = std::find(indicies.begin(), indicies.end(),
           column.m_name) != indicies.end();
         if(!is_unique) {
           query += column.m_name;
-          query += " = VALUES(";
-          query += column.m_name;
-          query += ")";
+          query += " = ";
+          query += "excluded." + column.m_name;
         }
       });
     query += ';';

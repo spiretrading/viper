@@ -170,7 +170,7 @@ namespace Viper::Sqlite3 {
     execute("COMMIT;");
   }
 
-  void Connection::execute(const UpdateStatement& statement) {
+  inline void Connection::execute(const UpdateStatement& statement) {
     auto query = std::string();
     build_query(statement, query);
     execute(query);

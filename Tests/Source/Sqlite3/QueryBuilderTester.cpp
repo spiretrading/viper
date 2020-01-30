@@ -8,6 +8,10 @@ namespace {
   struct TableRow {
     int m_x;
     double m_y;
+
+    bool operator ==(const TableRow& rhs) const {
+      return std::tie(m_x, m_y) == std::tie(rhs.m_x, rhs.m_y);
+    }
   };
 
   auto get_row() {
@@ -122,5 +126,18 @@ TEST_CASE("test_date_time", "[sqlite3_query_builder]") {
   c.execute(insert(row, "test_table", &value));
   auto selected_value = DateTime();
   c.execute(select(row, "test_table", &selected_value));
+  REQUIRE(selected_value == value);
+}
+
+TEST_CASE("test_upsert", "[sqlite3_query_builder]") {
+  auto c = Connection(":memory:");
+  c.open();
+  c.execute(create(get_row(), "test_table"));
+  auto value = TableRow{5, 3.14};
+  c.execute(insert(get_row(), "test_table", &value));
+  auto update = TableRow{5, 6.28};
+  c.execute(upsert(get_row(), "test_table", &value));
+  auto selected_value = TableRow();
+  c.execute(select(get_row(), "test_table", &selected_value));
   REQUIRE(selected_value == value);
 }
