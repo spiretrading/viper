@@ -6,6 +6,8 @@
 #include "Viper/InsertRangeStatement.hpp"
 #include "Viper/SelectClause.hpp"
 #include "Viper/SelectStatement.hpp"
+#include "Viper/UpdateStatement.hpp"
+#include "Viper/UpsertStatement.hpp"
 #include "Viper/Sqlite3/DataTypeName.hpp"
 
 namespace Viper::Sqlite3 {
