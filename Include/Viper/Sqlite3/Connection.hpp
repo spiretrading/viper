@@ -2,12 +2,15 @@
 #define VIPER_SQLITE3_CONNECTION_HPP
 #include <string>
 #include <sqlite3.h>
+#include "Viper/CommitStatement.hpp"
 #include "Viper/ConnectException.hpp"
 #include "Viper/CreateTableStatement.hpp"
 #include "Viper/DeleteStatement.hpp"
 #include "Viper/ExecuteException.hpp"
 #include "Viper/InsertRangeStatement.hpp"
+#include "Viper/RollbackStatement.hpp"
 #include "Viper/SelectStatement.hpp"
+#include "Viper/StartTransactionStatement.hpp"
 #include "Viper/Sqlite3/DataTypeName.hpp"
 #include "Viper/Sqlite3/QueryBuilder.hpp"
 
@@ -80,6 +83,24 @@ namespace Viper::Sqlite3 {
       */
       template<typename T, typename D>
       void execute(const SelectStatement<T, D>& s);
+
+      //! Starts a transaction.
+      /*!
+        \param statement The statement to execute.
+      */
+      void execute(const StartTransactionStatement& statement);
+
+      //! Commits a transaction.
+      /*!
+        \param statement The statement to execute.
+      */
+      void execute(const CommitStatement& statement);
+
+      //! Rolls back a transaction.
+      /*!
+        \param statement The statement to execute.
+      */
+      void execute(const RollbackStatement& statement);
 
       //! Opens a connection to the SQLite database.
       void open();
@@ -164,7 +185,7 @@ namespace Viper::Sqlite3 {
       auto query = std::string();
       build_query(sub_range, query);
       execute(query);
-      i = e;
+      std::advance(i, sub_count);
       count -= sub_count;
     }
     execute("COMMIT;");
@@ -190,7 +211,7 @@ namespace Viper::Sqlite3 {
       auto query = std::string();
       build_query(sub_range, query);
       execute(query);
-      i = e;
+      std::advance(i, sub_count);
       count -= sub_count;
     }
     execute("COMMIT;");
@@ -247,6 +268,24 @@ namespace Viper::Sqlite3 {
       ++destination;
     }
     ::sqlite3_finalize(statement);
+  }
+
+  inline void Connection::execute(const StartTransactionStatement& statement) {
+    auto query = std::string();
+    build_query(statement, query);
+    execute(query);
+  }
+
+  inline void Connection::execute(const CommitStatement& statement) {
+    auto query = std::string();
+    build_query(statement, query);
+    execute(query);
+  }
+
+  inline void Connection::execute(const RollbackStatement& statement) {
+    auto query = std::string();
+    build_query(statement, query);
+    execute(query);
   }
 
   inline void Connection::open() {

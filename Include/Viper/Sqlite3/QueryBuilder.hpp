@@ -1,11 +1,14 @@
 #ifndef VIPER_SQLITE3_QUERY_BUILDER_HPP
 #define VIPER_SQLITE3_QUERY_BUILDER_HPP
 #include <string>
+#include "Viper/CommitStatement.hpp"
 #include "Viper/CreateTableStatement.hpp"
 #include "Viper/DeleteStatement.hpp"
 #include "Viper/InsertRangeStatement.hpp"
+#include "Viper/RollbackStatement.hpp"
 #include "Viper/SelectClause.hpp"
 #include "Viper/SelectStatement.hpp"
+#include "Viper/StartTransactionStatement.hpp"
 #include "Viper/UpdateStatement.hpp"
 #include "Viper/UpsertStatement.hpp"
 #include "Viper/Sqlite3/DataTypeName.hpp"
@@ -268,6 +271,36 @@ namespace Details {
       std::string& query) {
     build_query(statement.get_clause(), query);
     query += ';';
+  }
+
+  //! Builds a start transaction statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  inline void build_query(const StartTransactionStatement& statement,
+      std::string& query) {
+    query += "BEGIN;";
+  }
+
+  //! Builds a commit statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  inline void build_query(const CommitStatement& statement,
+      std::string& query) {
+    query += "COMMIT;";
+  }
+
+  //! Builds a rollback statement.
+  /*!
+    \param statement The statement to build.
+    \param query The string to store the query in.
+  */
+  inline void build_query(const RollbackStatement& statement,
+      std::string& query) {
+    query += "ROLLBACK;";
   }
 }
 

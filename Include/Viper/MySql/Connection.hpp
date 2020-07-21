@@ -2,15 +2,18 @@
 #define VIPER_MYSQL_CONNECTION_HPP
 #include <string>
 #include <mysql.h>
+#include "Viper/CommitStatement.hpp"
 #include "Viper/ConnectException.hpp"
 #include "Viper/CreateTableStatement.hpp"
 #include "Viper/DeleteStatement.hpp"
 #include "Viper/ExecuteException.hpp"
 #include "Viper/InsertRangeStatement.hpp"
+#include "Viper/RollbackStatement.hpp"
 #include "Viper/SelectStatement.hpp"
 #include "Viper/UpdateStatement.hpp"
 #include "Viper/MySql/DataTypeName.hpp"
 #include "Viper/MySql/QueryBuilder.hpp"
+#include "Viper/StartTransactionStatement.hpp"
 
 namespace Viper::MySql {
 
@@ -214,7 +217,7 @@ namespace Viper::MySql {
       auto query = std::string();
       build_query(sub_range, query);
       execute(query);
-      i = e;
+      std::advance(i, sub_count);
       count -= sub_count;
     }
     execute("COMMIT;");
@@ -240,7 +243,7 @@ namespace Viper::MySql {
       auto query = std::string();
       build_query(sub_range, query);
       execute(query);
-      i = e;
+      std::advance(i, sub_count);
       count -= sub_count;
     }
     execute("COMMIT;");
