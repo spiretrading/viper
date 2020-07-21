@@ -52,7 +52,7 @@ namespace Details {
   template<typename T>
   void build_query(const CreateTableStatement<T>& statement,
       std::string& query) {
-    query += "BEGIN;CREATE TABLE ";
+    query += "CREATE TABLE ";
     if(statement.get_exists_flag()) {
       query += "IF NOT EXISTS ";
     }
@@ -86,7 +86,6 @@ namespace Details {
       Details::append_list(current_index.m_columns, query);
       query += ");";
     }
-    query += "COMMIT;";
   }
 
   //! Builds a delete query statement.

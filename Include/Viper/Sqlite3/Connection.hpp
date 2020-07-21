@@ -11,6 +11,7 @@
 #include "Viper/RollbackStatement.hpp"
 #include "Viper/SelectStatement.hpp"
 #include "Viper/StartTransactionStatement.hpp"
+#include "Viper/Transaction.hpp"
 #include "Viper/Sqlite3/DataTypeName.hpp"
 #include "Viper/Sqlite3/QueryBuilder.hpp"
 
@@ -111,6 +112,7 @@ namespace Viper::Sqlite3 {
     private:
       std::string m_path;
       ::sqlite3* m_handle;
+      int m_transaction_count;
 
       Connection(const Connection&) = delete;
       Connection& operator =(const Connection&) = delete;
@@ -118,12 +120,15 @@ namespace Viper::Sqlite3 {
 
   inline Connection::Connection(std::string path)
       : m_path(std::move(path)),
-        m_handle(nullptr) {}
+        m_handle(nullptr),
+        m_transaction_count(0) {}
 
   inline Connection::Connection(Connection&& connection)
       : m_path(std::move(connection.m_path)),
-        m_handle(connection.m_handle) {
+        m_handle(connection.m_handle),
+        m_transaction_count(connection.m_transaction_count) {
     connection.m_handle = nullptr;
+    connection.m_transaction_count = 0;
   }
 
   inline Connection::~Connection() {
@@ -162,7 +167,9 @@ namespace Viper::Sqlite3 {
   void Connection::execute(const CreateTableStatement<T>& s) {
     std::string query;
     build_query(s, query);
-    execute(query);
+    transaction(*this, [&] {
+      execute(query);
+    });
   }
 
   inline void Connection::execute(const DeleteStatement& s) {
@@ -175,20 +182,20 @@ namespace Viper::Sqlite3 {
   void Connection::execute(const InsertRangeStatement<T, B, E>& s) {
     constexpr auto MAX_WRITES = std::size_t(300);
     auto count = std::distance(s.get_begin(), s.get_end());
-    execute("BEGIN;");
-    auto i = s.get_begin();
-    while(count != 0) {
-      auto sub_count = std::min<std::size_t>(MAX_WRITES, count);
-      auto e = i;
-      std::advance(e, sub_count);
-      auto sub_range = insert(s.get_row(), s.get_table(), i, e);
-      auto query = std::string();
-      build_query(sub_range, query);
-      execute(query);
-      std::advance(i, sub_count);
-      count -= sub_count;
-    }
-    execute("COMMIT;");
+    transaction(*this, [&] {
+      auto i = s.get_begin();
+      while(count != 0) {
+        auto sub_count = std::min<std::size_t>(MAX_WRITES, count);
+        auto e = i;
+        std::advance(e, sub_count);
+        auto sub_range = insert(s.get_row(), s.get_table(), i, e);
+        auto query = std::string();
+        build_query(sub_range, query);
+        execute(query);
+        std::advance(i, sub_count);
+        count -= sub_count;
+      }
+    });
   }
 
   inline void Connection::execute(const UpdateStatement& statement) {
@@ -201,20 +208,20 @@ namespace Viper::Sqlite3 {
   void Connection::execute(const UpsertStatement<T, B, E>& statement) {
     constexpr auto MAX_WRITES = std::size_t(300);
     auto count = std::distance(statement.get_begin(), statement.get_end());
-    execute("BEGIN;");
-    auto i = statement.get_begin();
-    while(count != 0) {
-      auto sub_count = std::min<std::size_t>(MAX_WRITES, count);
-      auto e = i;
-      std::advance(e, sub_count);
-      auto sub_range = upsert(statement.get_row(), statement.get_table(), i, e);
-      auto query = std::string();
-      build_query(sub_range, query);
-      execute(query);
-      std::advance(i, sub_count);
-      count -= sub_count;
-    }
-    execute("COMMIT;");
+    transaction(*this, [&] {
+      auto i = statement.get_begin();
+      while(count != 0) {
+        auto sub_count = std::min<std::size_t>(MAX_WRITES, count);
+        auto e = i;
+        std::advance(e, sub_count);
+        auto sub_range = upsert(statement.get_row(), statement.get_table(), i, e);
+        auto query = std::string();
+        build_query(sub_range, query);
+        execute(query);
+        std::advance(i, sub_count);
+        count -= sub_count;
+      }
+    });
   }
 
   template<typename T, typename D>
@@ -271,18 +278,26 @@ namespace Viper::Sqlite3 {
   }
 
   inline void Connection::execute(const StartTransactionStatement& statement) {
+    ++m_transaction_count;
+    if(m_transaction_count != 1) {
+      return;
+    }
     auto query = std::string();
     build_query(statement, query);
     execute(query);
   }
 
   inline void Connection::execute(const CommitStatement& statement) {
-    auto query = std::string();
-    build_query(statement, query);
-    execute(query);
+    --m_transaction_count;
+    if(m_transaction_count == 0) {
+      auto query = std::string();
+      build_query(statement, query);
+      execute(query);
+    }
   }
 
   inline void Connection::execute(const RollbackStatement& statement) {
+    m_transaction_count = 0;
     auto query = std::string();
     build_query(statement, query);
     execute(query);
