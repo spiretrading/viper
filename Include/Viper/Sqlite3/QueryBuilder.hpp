@@ -38,7 +38,7 @@ namespace Details {
   template<typename T>
   void append_list(const T& list, std::string& query) {
     return append_list(list, query,
-      [] (auto& item, std::string& query) {
+      [] (const auto& item, std::string& query) {
         query += item;
       });
   }
@@ -58,7 +58,7 @@ namespace Details {
     }
     query += statement.get_name() + '(';
     Details::append_list(statement.get_row().get_columns(), query,
-      [] (auto& column, auto& query) {
+      [] (const auto& column, auto& query) {
         query += column.m_name + ' ' + get_name(*column.m_type);
         if(!column.m_is_nullable) {
           query += " NOT NULL";
@@ -119,12 +119,12 @@ namespace Details {
     query += statement.get_table();
     query += " (";
     Details::append_list(statement.get_row().get_columns(), query,
-      [] (auto& column, auto& query) {
+      [] (const auto& column, auto& query) {
         query += column.m_name;
       });
     query += ") VALUES ";
     Details::append_list(statement.get_begin(), statement.get_end(), query,
-      [&] (auto& column, auto& query) {
+      [&] (const auto& column, auto& query) {
         query += '(';
         auto prepend_comma = false;
         for(auto i = 0; i <
@@ -176,12 +176,12 @@ namespace Details {
     query += statement.get_table();
     query += " (";
     Details::append_list(statement.get_row().get_columns(), query,
-      [] (auto& column, auto& query) {
+      [] (const auto& column, auto& query) {
         query += column.m_name;
       });
     query += ") VALUES ";
     Details::append_list(statement.get_begin(), statement.get_end(), query,
-      [&] (auto& column, auto& query) {
+      [&] (const auto& column, auto& query) {
         query += '(';
         auto prepend_comma = false;
         for(auto i = 0; i <
@@ -205,7 +205,7 @@ namespace Details {
     Details::append_list(indicies, query);
     query += ") DO UPDATE SET ";
     Details::append_list(statement.get_row().get_columns(), query,
-      [&] (auto& column, auto& query) {
+      [&] (const auto& column, auto& query) {
         auto is_unique = std::find(indicies.begin(), indicies.end(),
           column.m_name) != indicies.end();
         if(!is_unique) {
