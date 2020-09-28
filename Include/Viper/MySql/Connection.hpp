@@ -1,5 +1,6 @@
 #ifndef VIPER_MYSQL_CONNECTION_HPP
 #define VIPER_MYSQL_CONNECTION_HPP
+#include <mutex>
 #include <string>
 #include <mysql.h>
 #include "Viper/CommitStatement.hpp"
@@ -115,6 +116,7 @@ namespace Viper::MySql {
       void close();
 
     private:
+      static inline std::mutex m_init_mutex;
       std::string m_host;
       unsigned int m_port;
       std::string m_username;
@@ -307,10 +309,15 @@ namespace Viper::MySql {
     if(m_handle != nullptr) {
       return;
     }
-    m_handle = ::mysql_init(nullptr);
+    {
+      auto lock = std::lock_guard(m_init_mutex);
+      m_handle = ::mysql_init(nullptr);
+    }
     if(m_handle == nullptr) {
       throw ConnectException("Unable to allocate MySQL connection.");
     }
+    ::my_bool reconnect = 1;
+    ::mysql_options(m_handle, MYSQL_OPT_RECONNECT, &reconnect);
     auto result = ::mysql_real_connect(m_handle, m_host.c_str(),
       m_username.c_str(), m_password.c_str(), m_database.c_str(), m_port,
       nullptr, CLIENT_MULTI_STATEMENTS);
@@ -320,8 +327,6 @@ namespace Viper::MySql {
       m_handle = nullptr;
       throw ConnectException(error);
     }
-    ::my_bool reconnect = 1;
-    ::mysql_options(m_handle, MYSQL_OPT_RECONNECT, &reconnect);
   }
 
   inline void Connection::close() {
