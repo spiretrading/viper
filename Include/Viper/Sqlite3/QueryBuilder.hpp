@@ -18,15 +18,13 @@ namespace Details {
   template<typename B, typename E, typename F>
   void append_list(B b, E e, std::string& query, F&& f) {
     auto prepend_comma = false;
-    auto size = query.size();
     for(auto i = b; i != e; ++i) {
       if(prepend_comma) {
         query += ',';
       }
+      auto presize = query.size();
       f(*i, query);
-      if(!prepend_comma) {
-        prepend_comma = size != query.size();
-      }
+      prepend_comma = query.size() != presize;
     }
   }
 
@@ -241,18 +239,15 @@ namespace Details {
     if(clause.get_order() != std::nullopt &&
         !clause.get_order()->m_columns.empty()) {
       query += " ORDER BY ";
-      if(clause.get_order()->m_columns.size() == 1) {
-        query += clause.get_order()->m_columns.front();
-      } else {
-        query += '(';
-        Details::append_list(clause.get_order()->m_columns, query);
-        query += ')';
-      }
-      if(clause.get_order()->m_order == Order::ASC) {
-        query += " ASC";
-      } else {
-        query += " DESC";
-      }
+      Details::append_list(clause.get_order()->m_columns, query,
+        [&] (const auto& column, auto& query) {
+          query += column.m_name;
+          if(column.m_order == Order::ASC) {
+            query += " ASC";
+          } else {
+            query += " DESC";
+          }
+        });
     }
     if(clause.get_limit() != std::nullopt) {
       query += " LIMIT ";

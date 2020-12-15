@@ -29,19 +29,47 @@ namespace Viper {
   //! Represents the order in which results are returned.
   struct Order {
 
-    //! Rows are in ascending (increasing) order.
-    static constexpr auto ASC = 0;
+    //! Specifies the ordering options.
+    enum {
 
-    //! Rows are in descending (decreasing) order.
-    static constexpr auto DESC = 1;
+     //! Rows are in ascending (increasing) order.
+     ASC = 0,
+
+     //! Rows are in descending (decreasing) order.
+     DESC = 1
+   };
+
+   //! Stores the ordering for a single column.
+   struct Column {
+
+     //! The name of the column to order.
+     std::string m_name;
+
+     //! The type of ordering to apply to the column.
+     int m_order;
+
+     //! Constructs column.
+     /*!
+       \param name The name of the column to order.
+       \param order The type of ordering to use on the column.
+     */
+     Column(std::string name, int order);
+
+     //! Constructs column sorted in ascending order.
+     /*!
+       \param name The name of the column to order.
+     */
+     Column(std::string name);
+   };
 
     //! The columns to order by.
-    std::vector<std::string> m_columns;
+    std::vector<Column> m_columns;
 
-    //! The order of the rows.
-    int m_order;
-
-    Order(std::vector<std::string> columns, int order);
+    //! Constructs an ordering.
+    /*!
+      \param columns The columns to order.
+    */
+    Order(std::vector<Column> column);
   };
 
   //! Represents a SELECT query's from clause.
@@ -121,15 +149,15 @@ namespace Viper {
   };
 
   //! Builds an ORDER BY clause.
-  inline Order order_by(std::vector<std::string> columns, int o) {
-    return Order(std::move(columns), o);
+  inline Order order_by(std::vector<Order::Column> columns) {
+    return Order(std::move(columns));
   }
 
   //! Builds an ORDER BY clause.
-  inline Order order_by(std::string_view column, int o) {
-    std::vector<std::string> c;
-    c.emplace_back(column);
-    return order_by(std::move(c), o);
+  inline Order order_by(std::string column, int o) {
+    auto c = std::vector<Order::Column>();
+    c.emplace_back(std::move(column), o);
+    return order_by(std::move(c));
   }
 
   //! Builds a select clause.
@@ -186,9 +214,15 @@ namespace Viper {
   inline Limit::Limit(int value)
       : m_value(value) {}
 
-  inline Order::Order(std::vector<std::string> columns, int o)
-      : m_columns(std::move(columns)),
-        m_order(o) {}
+  inline Order::Column::Column(std::string name, int order)
+    : m_name(std::move(name)),
+      m_order(order) {}
+
+  inline Order::Column::Column(std::string name)
+    : Column(std::move(name), ASC) {}
+
+  inline Order::Order(std::vector<Column> columns)
+      : m_columns(std::move(columns)) {}
 
   inline FromClause::FromClause(SelectClause s)
       : variant(std::make_shared<SelectClause>(s)) {}
