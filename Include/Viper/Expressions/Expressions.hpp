@@ -4,6 +4,7 @@
 #include "Viper/Expressions/InfixOperator.hpp"
 #include "Viper/Expressions/LiteralExpression.hpp"
 #include "Viper/Expressions/MembershipOperator.hpp"
+#include "Viper/Expressions/NotExpression.hpp"
 #include "Viper/Expressions/SqlFunctions.hpp"
 #include "Viper/Expressions/SymbolExpression.hpp"
 #include "Viper/Expressions/VirtualExpression.hpp"

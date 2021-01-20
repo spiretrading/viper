@@ -27,9 +27,7 @@ TEST_CASE("test_build_create_table_query", "[sqlite3_query_builder]") {
   std::string q;
   build_query(s, q);
   REQUIRE(q ==
-    "BEGIN;"
-    "CREATE TABLE t1(x INTEGER NOT NULL,y REAL NOT NULL,PRIMARY KEY(x));"
-    "COMMIT;");
+    "CREATE TABLE t1(x INTEGER NOT NULL,y REAL NOT NULL,PRIMARY KEY(x));");
 }
 
 TEST_CASE("test_build_select_query", "[sqlite3_query_builder]") {
@@ -64,11 +62,12 @@ TEST_CASE("test_build_select_query", "[sqlite3_query_builder]") {
   }
   SECTION("Select query with a multi column ordering.") {
     std::vector<TableRow> rows;
-    auto s = select(get_row(), "t1", order_by({"y", "x"}, Order::DESC),
+    auto s = select(get_row(), "t1",
+      order_by({{"y", Order::DESC}, {"x", Order::DESC}}),
       std::back_inserter(rows));
     std::string q;
     build_query(s, q);
-    REQUIRE(q == "SELECT x,y FROM t1 ORDER BY (y,x) DESC;");
+    REQUIRE(q == "SELECT x,y FROM t1 ORDER BY y DESC,x DESC;");
   }
   SECTION("Select query with a where clause and a limit.") {
     std::vector<TableRow> rows;
