@@ -250,14 +250,14 @@ namespace Viper::Sqlite3 {
           std::vector<RawColumn>* m_columns;
 
           void visit(const BlobDataType& t) override {
-            auto data = ::sqlite3_column_blob(m_statement, m_index);
-            auto size = ::sqlite3_column_bytes(m_statement, m_index);
+            auto data = ::sqlite3_column_blob(m_statement, this->m_index);
+            auto size = ::sqlite3_column_bytes(m_statement, this->m_index);
             m_columns->push_back(RawColumn{reinterpret_cast<const char*>(data),
               static_cast<std::size_t>(size)});
           }
 
           void visit(const DataType& t) override {
-            auto data = ::sqlite3_column_text(m_statement, m_index);
+            auto data = ::sqlite3_column_text(m_statement, this->m_index);
             m_columns->emplace_back(RawColumn{
               reinterpret_cast<const char*>(data), 0});
           }
