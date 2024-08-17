@@ -5,6 +5,7 @@
 #include <cstring>
 #include <optional>
 #include <string>
+#include <vector>
 #include "Viper/DataTypes/BlobDataType.hpp"
 #include "Viper/DataTypes/DateTimeDataType.hpp"
 #include "Viper/Utilities.hpp"
