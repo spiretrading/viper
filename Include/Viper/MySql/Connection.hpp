@@ -318,6 +318,8 @@ namespace Viper::MySql {
     }
     ::my_bool reconnect = 1;
     ::mysql_options(m_handle, MYSQL_OPT_RECONNECT, &reconnect);
+    ::my_bool verify = 0;
+    ::mysql_options(m_handle, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &verify);
     auto result = ::mysql_real_connect(m_handle, m_host.c_str(),
       m_username.c_str(), m_password.c_str(), m_database.c_str(), m_port,
       nullptr, CLIENT_MULTI_STATEMENTS);
