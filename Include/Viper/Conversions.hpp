@@ -86,7 +86,9 @@ namespace Viper {
   template<>
   struct ToSql<char> {
     void operator ()(char value, std::string& column) const {
+      column += '\"';
       column += value;
+      column += '\"';
     }
   };
 
