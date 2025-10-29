@@ -12,15 +12,29 @@ namespace Viper {
    *        series of statements to execute.
    */
   template<typename Connection, typename F>
-  void transaction(Connection& connection, F&& transaction) {
+  decltype(auto) transaction(Connection& connection, F&& f) {
+    struct CommitGuard {
+      Connection* m_connection;
+      int m_exception_count;
+
+      CommitGuard(Connection& connection)
+        : m_connection(&connection),
+          m_exception_count(std::uncaught_exceptions()) {}
+
+      ~CommitGuard() {
+        if(std::uncaught_exceptions() == m_exception_count) {
+          m_connection->execute(commit());
+        }
+      }
+    };
     connection.execute(start_transaction());
+    auto guard = CommitGuard(connection);
     try {
-      transaction();
+      return std::forward<F>(f)();
     } catch(...) {
       connection.execute(rollback());
       throw;
     }
-    connection.execute(commit());
   }
 }
 
