@@ -1,5 +1,6 @@
 #ifndef VIPER_MYSQL_QUERY_BUILDER_HPP
 #define VIPER_MYSQL_QUERY_BUILDER_HPP
+#include <algorithm>
 #include <string>
 #include <vector>
 #include "Viper/CommitStatement.hpp"

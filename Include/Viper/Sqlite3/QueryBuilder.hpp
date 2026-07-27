@@ -1,5 +1,6 @@
 #ifndef VIPER_SQLITE3_QUERY_BUILDER_HPP
 #define VIPER_SQLITE3_QUERY_BUILDER_HPP
+#include <algorithm>
 #include <string>
 #include "Viper/CommitStatement.hpp"
 #include "Viper/CreateTableStatement.hpp"
