@@ -85,6 +85,28 @@ TEST_CASE("test_build_select_query", "[sqlite3_query_builder]") {
     build_query(s, q);
     REQUIRE(q == "SELECT x,y FROM t1 WHERE (5 = x) ORDER BY x DESC LIMIT 432;");
   }
+  SECTION("Select query with a limit and an offset.") {
+    std::vector<TableRow> rows;
+    auto s = select(get_row(), "t1", limit(25, 100), std::back_inserter(rows));
+    std::string q;
+    build_query(s, q);
+    REQUIRE(q == "SELECT x,y FROM t1 LIMIT 25 OFFSET 100;");
+  }
+  SECTION("Select query with a limit and a zero offset.") {
+    std::vector<TableRow> rows;
+    auto s = select(get_row(), "t1", limit(25, 0), std::back_inserter(rows));
+    std::string q;
+    build_query(s, q);
+    REQUIRE(q == "SELECT x,y FROM t1 LIMIT 25;");
+  }
+  SECTION("Select query with an order, limit, and offset.") {
+    std::vector<TableRow> rows;
+    auto s = select(get_row(), "t1", order_by("x", Order::DESC),
+      limit(10, 20), std::back_inserter(rows));
+    std::string q;
+    build_query(s, q);
+    REQUIRE(q == "SELECT x,y FROM t1 ORDER BY x DESC LIMIT 10 OFFSET 20;");
+  }
   SECTION("Select query with an expression column.") {
     int value;
     auto s = select(max<int>("abc"), "t1", &value);

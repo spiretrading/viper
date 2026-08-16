@@ -18,12 +18,26 @@ namespace Viper {
     //! The maximum number of rows to return.
     int m_value;
 
+    //! The number of rows to skip before returning any.
+    int m_offset;
+
     explicit Limit(int value);
+
+    Limit(int value, int offset);
   };
 
   //! Returns a limit on the number of rows produced by a query.
   inline auto limit(int value) {
     return Limit(value);
+  }
+
+  //! Returns a limit on the number of rows produced by a query.
+  /*!
+    \param value The maximum number of rows to return.
+    \param offset The number of rows to skip before returning any.
+  */
+  inline auto limit(int value, int offset) {
+    return Limit(value, offset);
   }
 
   //! Represents the order in which results are returned.
@@ -212,7 +226,11 @@ namespace Viper {
   }
 
   inline Limit::Limit(int value)
-      : m_value(value) {}
+      : Limit(value, 0) {}
+
+  inline Limit::Limit(int value, int offset)
+      : m_value(value),
+        m_offset(offset) {}
 
   inline Order::Column::Column(std::string name, int order)
     : m_name(std::move(name)),

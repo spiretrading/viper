@@ -248,6 +248,10 @@ namespace Details {
     if(clause.get_limit() != std::nullopt) {
       query += " LIMIT ";
       query += std::to_string(clause.get_limit()->m_value);
+      if(clause.get_limit()->m_offset != 0) {
+        query += " OFFSET ";
+        query += std::to_string(clause.get_limit()->m_offset);
+      }
     }
   }
 
