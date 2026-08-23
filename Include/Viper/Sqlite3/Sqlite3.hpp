@@ -3,6 +3,7 @@
 #include "Viper/Viper.hpp"
 #include "Viper/Sqlite3/Connection.hpp"
 #include "Viper/Sqlite3/DataTypeName.hpp"
+#include "Viper/Sqlite3/Functions.hpp"
 #include "Viper/Sqlite3/QueryBuilder.hpp"
 
 #endif
