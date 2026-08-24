@@ -162,3 +162,27 @@ TEST_CASE("test_upsert", "[sqlite3_query_builder]") {
   c.execute(select(get_row(), "test_table", &selected_value));
   REQUIRE(selected_value == value);
 }
+
+TEST_CASE("test_build_greatest", "[Sqlite3QueryBuilder]") {
+  auto query = std::string();
+  build_query(greatest(sym("a"), literal(5)), query);
+  REQUIRE(query == "MAX(a, 5)");
+}
+
+TEST_CASE("test_build_least", "[Sqlite3QueryBuilder]") {
+  auto query = std::string();
+  build_query(least(sym("a"), sym("b")), query);
+  REQUIRE(query == "MIN(a, b)");
+}
+
+TEST_CASE("test_build_nested_function", "[Sqlite3QueryBuilder]") {
+  auto query = std::string();
+  build_query(greatest(greatest(sym("a"), sym("b")), sym("c")), query);
+  REQUIRE(query == "MAX(MAX(a, b), c)");
+}
+
+TEST_CASE("test_build_custom_function", "[Sqlite3QueryBuilder]") {
+  auto query = std::string();
+  build_query(call("MY_FUNCTION", {sym("a"), literal(1)}), query);
+  REQUIRE(query == "MY_FUNCTION(a, 1)");
+}

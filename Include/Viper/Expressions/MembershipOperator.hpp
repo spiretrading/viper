@@ -16,7 +16,13 @@ namespace Viper {
       */
       MembershipOperator(Expression term, std::string member);
 
-      void append_query(std::string& query) const override;
+      //! Returns the term.
+      const Expression& get_term() const;
+
+      //! Returns the member.
+      const std::string& get_member() const;
+
+      void apply(ExpressionVisitor& visitor) const override;
 
     private:
       Expression m_term;
@@ -38,13 +44,20 @@ namespace Viper {
       : m_term(std::move(term)),
         m_member(std::move(member)) {}
 
-  inline void MembershipOperator::append_query(std::string& query) const {
-    auto initial_size = query.size();
-    m_term.append_query(query);
-    if(query.size() != initial_size) {
-      query += '.';
-    }
-    query += m_member;
+  inline const Expression& MembershipOperator::get_term() const {
+    return m_term;
+  }
+
+  inline const std::string& MembershipOperator::get_member() const {
+    return m_member;
+  }
+
+  inline void MembershipOperator::apply(ExpressionVisitor& visitor) const {
+    visitor.visit(*this);
+  }
+
+  inline void ExpressionVisitor::visit(const MembershipOperator& expression) {
+    visit(static_cast<const VirtualExpression&>(expression));
   }
 }
 

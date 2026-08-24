@@ -12,6 +12,7 @@
 #include "Viper/StartTransactionStatement.hpp"
 #include "Viper/UpdateStatement.hpp"
 #include "Viper/UpsertStatement.hpp"
+#include "Viper/Expressions/ExpressionRenderer.hpp"
 #include "Viper/Sqlite3/DataTypeName.hpp"
 
 namespace Viper::Sqlite3 {
@@ -42,6 +43,33 @@ namespace Details {
       });
   }
 }
+
+  //! Renders an expression the way this dialect spells it.
+  class ExpressionRenderer final : public Viper::ExpressionRenderer {
+    public:
+      using Viper::ExpressionRenderer::ExpressionRenderer;
+
+    protected:
+      std::string get_name(const std::string& name) const override {
+        if(name == GREATEST_NAME) {
+          return "MAX";
+        } else if(name == LEAST_NAME) {
+          return "MIN";
+        }
+        return name;
+      }
+  };
+
+  //! Builds an expression.
+  /*!
+    \param expression The expression to build.
+    \param query The string to store the query in.
+  */
+  inline void build_query(
+      const Expression& expression, std::string& query) {
+    auto renderer = ExpressionRenderer(query);
+    expression.apply(renderer);
+  }
 
   //! Builds a create table query statement.
   /*!
@@ -97,7 +125,7 @@ namespace Details {
     query += "DELETE FROM " + statement.get_table();
     if(statement.get_where().has_value()) {
       query += " WHERE ";
-      statement.get_where()->append_query(query);
+      build_query(*statement.get_where(), query);
     }
     query += ';';
   }
@@ -151,10 +179,10 @@ namespace Details {
     query += " SET ";
     query += statement.get_set().m_column;
     query += " = ";
-    statement.get_set().m_value.append_query(query);
+    build_query(statement.get_set().m_value, query);
     if(statement.get_where()) {
       query += " WHERE ";
-      statement.get_where()->append_query(query);
+      build_query(*statement.get_where(), query);
     }
     query += ';';
   }
@@ -235,7 +263,7 @@ namespace Details {
     }
     if(clause.get_where() != std::nullopt) {
       query += " WHERE ";
-      clause.get_where()->append_query(query);
+      build_query(*clause.get_where(), query);
     }
     if(clause.get_order() != std::nullopt &&
         !clause.get_order()->m_columns.empty()) {

@@ -16,7 +16,10 @@ namespace Viper {
       */
       LiteralExpression(std::string value);
 
-      void append_query(std::string& query) const override;
+      //! Returns the value.
+      const std::string& get_value() const;
+
+      void apply(ExpressionVisitor& visitor) const override;
 
     private:
       std::string m_value;
@@ -33,8 +36,16 @@ namespace Viper {
   inline LiteralExpression::LiteralExpression(std::string value)
       : m_value(std::move(value)) {}
 
-  inline void LiteralExpression::append_query(std::string& query) const {
-    query += m_value;
+  inline const std::string& LiteralExpression::get_value() const {
+    return m_value;
+  }
+
+  inline void LiteralExpression::apply(ExpressionVisitor& visitor) const {
+    visitor.visit(*this);
+  }
+
+  inline void ExpressionVisitor::visit(const LiteralExpression& expression) {
+    visit(static_cast<const VirtualExpression&>(expression));
   }
 }
 

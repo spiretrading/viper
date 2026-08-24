@@ -7,6 +7,12 @@
 
 namespace Viper {
 
+  //! The name used for the function returning the greater of its arguments.
+  inline const auto GREATEST_NAME = std::string("GREATEST");
+
+  //! The name used for the function returning the lesser of its arguments.
+  inline const auto LEAST_NAME = std::string("LEAST");
+
   //! Implements an SQL expression representing a call to a function.
   class FunctionExpression final : public VirtualExpression {
     public:
@@ -18,7 +24,13 @@ namespace Viper {
       */
       FunctionExpression(std::string name, std::vector<Expression> arguments);
 
-      void append_query(std::string& query) const override;
+      //! Returns the name of the function being called.
+      const std::string& get_name() const;
+
+      //! Returns the arguments.
+      const std::vector<Expression>& get_arguments() const;
+
+      void apply(ExpressionVisitor& visitor) const override;
 
     private:
       std::string m_name;
@@ -35,24 +47,44 @@ namespace Viper {
       std::move(name), std::move(arguments)));
   }
 
+  //! Returns an expression evaluating to the greater of two values.
+  /*!
+    \param left The left hand side.
+    \param right The right hand side.
+  */
+  inline Expression greatest(Expression left, Expression right) {
+    return call(GREATEST_NAME, {std::move(left), std::move(right)});
+  }
+
+  //! Returns an expression evaluating to the lesser of two values.
+  /*!
+    \param left The left hand side.
+    \param right The right hand side.
+  */
+  inline Expression least(Expression left, Expression right) {
+    return call(LEAST_NAME, {std::move(left), std::move(right)});
+  }
+
   inline FunctionExpression::FunctionExpression(
     std::string name, std::vector<Expression> arguments)
     : m_name(std::move(name)),
       m_arguments(std::move(arguments)) {}
 
-  inline void FunctionExpression::append_query(std::string& query) const {
-    query += m_name;
-    query += '(';
-    auto is_first = true;
-    for(auto& argument : m_arguments) {
-      if(is_first) {
-        is_first = false;
-      } else {
-        query += ", ";
-      }
-      argument.append_query(query);
-    }
-    query += ')';
+  inline const std::string& FunctionExpression::get_name() const {
+    return m_name;
+  }
+
+  inline const std::vector<Expression>&
+      FunctionExpression::get_arguments() const {
+    return m_arguments;
+  }
+
+  inline void FunctionExpression::apply(ExpressionVisitor& visitor) const {
+    visitor.visit(*this);
+  }
+
+  inline void ExpressionVisitor::visit(const FunctionExpression& expression) {
+    visit(static_cast<const VirtualExpression&>(expression));
   }
 }
 

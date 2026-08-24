@@ -1,6 +1,6 @@
 #ifndef VIPER_VIRTUAL_EXPRESSION_HPP
 #define VIPER_VIRTUAL_EXPRESSION_HPP
-#include <string>
+#include "Viper/Expressions/ExpressionVisitor.hpp"
 
 namespace Viper {
 
@@ -9,8 +9,8 @@ namespace Viper {
     public:
       virtual ~VirtualExpression() = default;
 
-      //! Appends this expression to an SQL query string.
-      virtual void append_query(std::string& query) const = 0;
+      //! Applies a visitor to this expression.
+      virtual void apply(ExpressionVisitor& visitor) const = 0;
 
     protected:
 

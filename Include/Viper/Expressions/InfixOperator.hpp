@@ -58,7 +58,16 @@ namespace Viper {
       */
       InfixOperator(Type t, Expression left, Expression right);
 
-      void append_query(std::string& query) const override;
+      //! Returns the type of operator.
+      Type get_type() const;
+
+      //! Returns the left hand side.
+      const Expression& get_left() const;
+
+      //! Returns the right hand side.
+      const Expression& get_right() const;
+
+      void apply(ExpressionVisitor& visitor) const override;
 
     private:
       Type m_type;
@@ -505,12 +514,24 @@ namespace Viper {
         m_left(std::move(left)),
         m_right(std::move(right)) {}
 
-  inline void InfixOperator::append_query(std::string& query) const {
-    query += '(';
-    m_left.append_query(query);
-    query += " " + get_symbol(m_type) + " ";
-    m_right.append_query(query);
-    query += ')';
+  inline InfixOperator::Type InfixOperator::get_type() const {
+    return m_type;
+  }
+
+  inline const Expression& InfixOperator::get_left() const {
+    return m_left;
+  }
+
+  inline const Expression& InfixOperator::get_right() const {
+    return m_right;
+  }
+
+  inline void InfixOperator::apply(ExpressionVisitor& visitor) const {
+    visitor.visit(*this);
+  }
+
+  inline void ExpressionVisitor::visit(const InfixOperator& expression) {
+    visit(static_cast<const VirtualExpression&>(expression));
   }
 }
 

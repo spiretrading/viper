@@ -14,7 +14,10 @@ namespace Viper {
       */
       NotExpression(Expression operand);
 
-      void append_query(std::string& query) const override;
+      //! Returns the operand.
+      const Expression& get_operand() const;
+
+      void apply(ExpressionVisitor& visitor) const override;
 
     private:
       Expression m_operand;
@@ -31,10 +34,16 @@ namespace Viper {
   inline NotExpression::NotExpression(Expression operand)
     : m_operand(std::move(operand)) {}
 
-  inline void NotExpression::append_query(std::string& query) const {
-    query += "(NOT ";
-    m_operand.append_query(query);
-    query += ")";
+  inline const Expression& NotExpression::get_operand() const {
+    return m_operand;
+  }
+
+  inline void NotExpression::apply(ExpressionVisitor& visitor) const {
+    visitor.visit(*this);
+  }
+
+  inline void ExpressionVisitor::visit(const NotExpression& expression) {
+    visit(static_cast<const VirtualExpression&>(expression));
   }
 }
 

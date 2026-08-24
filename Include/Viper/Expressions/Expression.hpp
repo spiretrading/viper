@@ -20,8 +20,8 @@ namespace Viper {
       */
       Expression(std::shared_ptr<VirtualExpression> e);
 
-      //! Appends this expression to an SQL query string.
-      void append_query(std::string& query) const;
+      //! Applies a visitor to this expression.
+      void apply(ExpressionVisitor& visitor) const;
 
     private:
       std::shared_ptr<VirtualExpression> m_expression;
@@ -30,11 +30,11 @@ namespace Viper {
   inline Expression::Expression(std::shared_ptr<VirtualExpression> e)
       : m_expression(std::move(e)) {}
 
-  inline void Expression::append_query(std::string& query) const {
+  inline void Expression::apply(ExpressionVisitor& visitor) const {
     if(!m_expression) {
       return;
     }
-    m_expression->append_query(query);
+    m_expression->apply(visitor);
   }
 }
 

@@ -1,6 +1,8 @@
 #ifndef VIPER_EXPRESSIONS_HPP
 #define VIPER_EXPRESSIONS_HPP
 #include "Viper/Expressions/Expression.hpp"
+#include "Viper/Expressions/ExpressionRenderer.hpp"
+#include "Viper/Expressions/ExpressionVisitor.hpp"
 #include "Viper/Expressions/FunctionExpression.hpp"
 #include "Viper/Expressions/InExpression.hpp"
 #include "Viper/Expressions/InfixOperator.hpp"

@@ -18,7 +18,13 @@ namespace Viper {
       */
       InExpression(Expression value, std::vector<Expression> set);
 
-      void append_query(std::string& query) const override;
+      //! Returns the value tested for membership.
+      const Expression& get_value() const;
+
+      //! Returns the set.
+      const std::vector<Expression>& get_set() const;
+
+      void apply(ExpressionVisitor& visitor) const override;
 
     private:
       Expression m_value;
@@ -55,24 +61,20 @@ namespace Viper {
     : m_value(std::move(value)),
       m_set(std::move(set)) {}
 
-  inline void InExpression::append_query(std::string& query) const {
-    if(m_set.empty()) {
-      literal(false).append_query(query);
-      return;
-    }
-    query += '(';
-    m_value.append_query(query);
-    query += " IN (";
-    auto is_first = true;
-    for(auto& value : m_set) {
-      if(is_first) {
-        is_first = false;
-      } else {
-        query += ", ";
-      }
-      value.append_query(query);
-    }
-    query += "))";
+  inline const Expression& InExpression::get_value() const {
+    return m_value;
+  }
+
+  inline const std::vector<Expression>& InExpression::get_set() const {
+    return m_set;
+  }
+
+  inline void InExpression::apply(ExpressionVisitor& visitor) const {
+    visitor.visit(*this);
+  }
+
+  inline void ExpressionVisitor::visit(const InExpression& expression) {
+    visit(static_cast<const VirtualExpression&>(expression));
   }
 }
 

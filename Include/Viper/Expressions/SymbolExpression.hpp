@@ -15,7 +15,10 @@ namespace Viper {
       */
       SymbolExpression(std::string symbol);
 
-      void append_query(std::string& query) const override;
+      //! Returns the symbol.
+      const std::string& get_symbol() const;
+
+      void apply(ExpressionVisitor& visitor) const override;
 
     private:
       std::string m_symbol;
@@ -29,8 +32,16 @@ namespace Viper {
   inline SymbolExpression::SymbolExpression(std::string symbol)
       : m_symbol(std::move(symbol)) {}
 
-  inline void SymbolExpression::append_query(std::string& query) const {
-    query += m_symbol;
+  inline const std::string& SymbolExpression::get_symbol() const {
+    return m_symbol;
+  }
+
+  inline void SymbolExpression::apply(ExpressionVisitor& visitor) const {
+    visitor.visit(*this);
+  }
+
+  inline void ExpressionVisitor::visit(const SymbolExpression& expression) {
+    visit(static_cast<const VirtualExpression&>(expression));
   }
 }
 

@@ -1,4 +1,5 @@
 #include <catch.hpp>
+#include "Viper/Sqlite3/QueryBuilder.hpp"
 #include "Viper/Viper.hpp"
 
 using namespace Viper;
@@ -21,7 +22,7 @@ TEST_CASE("test_infix_symbols", "[InfixOperator]") {
 TEST_CASE("test_InfixOperator", "[InfixOperator]") {
   InfixOperator o(InfixOperator::Type::ADD, sym("a"), sym("b"));
   std::string query;
-  o.append_query(query);
+  Sqlite3::build_query(o, query);
   REQUIRE(query == "(a + b)");
 }
 
@@ -29,25 +30,25 @@ TEST_CASE("test_InfixOperator_overloading", "[InfixOperator]") {
   SECTION("Overload of two expressions.") {
     auto o = sym("a") + sym("b");
     std::string query;
-    o.append_query(query);
+    Sqlite3::build_query(o, query);
     REQUIRE(query == "(a + b)");
   }
   SECTION("Overload of left expression and right literal.") {
     auto o = sym("a") + 5;
     std::string query;
-    o.append_query(query);
+    Sqlite3::build_query(o, query);
     REQUIRE(query == "(a + 5)");
   }
   SECTION("Overload of left literal and right expression.") {
     auto o = 123 + sym("b");
     std::string query;
-    o.append_query(query);
+    Sqlite3::build_query(o, query);
     REQUIRE(query == "(123 + b)");
   }
   SECTION("Overload of string literal and right expression.") {
     auto o = "hello\nworld" + sym("b");
     std::string query;
-    o.append_query(query);
+    Sqlite3::build_query(o, query);
     REQUIRE(query == "(\"hello\\nworld\" + b)");
   }
 }
