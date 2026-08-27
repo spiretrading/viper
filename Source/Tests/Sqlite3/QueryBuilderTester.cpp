@@ -166,10 +166,10 @@ TEST_SUITE("Sqlite3QueryBuilder") {
     auto value = TableRow{5, 3.14};
     c.execute(insert(get_row(), "test_table", &value));
     auto update = TableRow{5, 6.28};
-    c.execute(upsert(get_row(), "test_table", &value));
+    c.execute(upsert(get_row(), "test_table", &update));
     auto selected_value = TableRow();
     c.execute(select(get_row(), "test_table", &selected_value));
-    REQUIRE(selected_value == value);
+    REQUIRE(selected_value == update);
   }
 
   TEST_CASE("build_greatest") {
