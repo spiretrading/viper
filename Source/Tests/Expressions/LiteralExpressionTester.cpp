@@ -1,3 +1,4 @@
+#include <memory>
 #include <doctest/doctest.h>
 #include "Viper/Sqlite3/QueryBuilder.hpp"
 #include "Viper/Viper.hpp"
@@ -6,7 +7,7 @@ using namespace Viper;
 
 TEST_SUITE("LiteralExpression") {
   TEST_CASE("literal_expression") {
-    auto l = LiteralExpression("123");
+    auto l = Expression(std::make_shared<LiteralExpression>("123"));
     auto query = std::string();
     Sqlite3::build_query(l, query);
     REQUIRE(query == "123");

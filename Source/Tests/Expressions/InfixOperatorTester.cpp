@@ -20,13 +20,6 @@ TEST_SUITE("InfixOperator") {
     REQUIRE(get_symbol(InfixOperator::Type::OR) == "OR");
   }
 
-  TEST_CASE("infix_operator") {
-    InfixOperator o(InfixOperator::Type::ADD, sym("a"), sym("b"));
-    std::string query;
-    Sqlite3::build_query(o, query);
-    REQUIRE(query == "(a + b)");
-  }
-
   TEST_CASE("infix_operator_overloading") {
     SUBCASE("Overload of two expressions.") {
       auto o = sym("a") + sym("b");

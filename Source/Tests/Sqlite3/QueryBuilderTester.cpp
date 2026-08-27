@@ -1,3 +1,9 @@
+#include <cstddef>
+#include <cstring>
+#include <iterator>
+#include <string>
+#include <tuple>
+#include <vector>
 #include <doctest/doctest.h>
 #include "Viper/Sqlite3/Sqlite3.hpp"
 

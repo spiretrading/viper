@@ -6,7 +6,7 @@ using namespace Viper;
 
 TEST_SUITE("NotExpression") {
   TEST_CASE("literal_not") {
-    auto l = NotExpression(literal(true));
+    auto l = !literal(true);
     auto query = std::string();
     Sqlite3::build_query(l, query);
     REQUIRE(query == "(NOT 1)");

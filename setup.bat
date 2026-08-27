@@ -74,7 +74,7 @@ SET "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 FOR /F "usebackq delims=" %%i IN (` ^
     "!VSWHERE!" -prerelease -latest -property installationPath`) DO (
   IF EXIST "%%i\Common7\Tools\vsdevcmd.bat" (
-    CALL "%%i\Common7\Tools\vsdevcmd.bat"
+    CALL "%%i\Common7\Tools\vsdevcmd.bat" -arch=x64 -host_arch=x64
   )
 )
 EXIT /B 0
