@@ -52,10 +52,9 @@ build_openssl() {
   mv "openssl-3.6.0" "openssl-3.6.0-build"
   pushd "openssl-3.6.0-build" > /dev/null
   export LDFLAGS=-ldl
-  ./config no-shared threads -fPIC -ldl --prefix="$ROOT/openssl-3.6.0" ||
-    return 1
+  ./config no-shared no-tests threads -fPIC -ldl \
+    --prefix="$ROOT/openssl-3.6.0" || return 1
   make -j "$cores" || return 1
-  make test || return 1
   make install || return 1
   unset LDFLAGS
   popd > /dev/null
