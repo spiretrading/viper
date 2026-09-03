@@ -21,7 +21,7 @@ namespace Viper {
         : m_connection(&connection),
           m_exception_count(std::uncaught_exceptions()) {}
 
-      ~CommitGuard() {
+      ~CommitGuard() noexcept(false) {
         if(std::uncaught_exceptions() == m_exception_count) {
           m_connection->execute(commit());
         }
