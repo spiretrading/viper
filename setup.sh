@@ -61,7 +61,7 @@ build_mariadb() {
   cores=$(get_core_count)
   export OPENSSL_ROOT_DIR="$ROOT/openssl-3.6.0"
   cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=./mariadb \
+    -DCMAKE_INSTALL_PREFIX=./mariadb -DWITH_UNIT_TESTS=OFF \
     -DCLIENT_PLUGIN_CACHING_SHA2_PASSWORD=STATIC . || return 1
   make -j "$cores" || return 1
   make install || return 1
