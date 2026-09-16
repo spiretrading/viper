@@ -8,7 +8,8 @@ target_link_libraries(viper_tester
   debug ${SQLITE_LIBRARY_DEBUG_PATH}
   optimized ${SQLITE_LIBRARY_OPTIMIZED_PATH})
 if(UNIX)
-  target_link_libraries(viper_tester dl pthread)
+  find_package(Threads REQUIRED)
+  target_link_libraries(viper_tester Threads::Threads ${CMAKE_DL_LIBS})
 endif()
 add_custom_command(TARGET viper_tester POST_BUILD COMMAND viper_tester)
 install(TARGETS viper_tester DESTINATION "${TEST_INSTALL_DIRECTORY}/$<CONFIG>")
