@@ -11,7 +11,4 @@ if(UNIX)
   target_link_libraries(viper_tester dl pthread)
 endif()
 add_custom_command(TARGET viper_tester POST_BUILD COMMAND viper_tester)
-install(TARGETS viper_tester CONFIGURATIONS Debug
-  DESTINATION ${TEST_INSTALL_DIRECTORY}/Debug)
-install(TARGETS viper_tester CONFIGURATIONS Release RelWithDebInfo
-  DESTINATION ${TEST_INSTALL_DIRECTORY}/Release)
+install(TARGETS viper_tester DESTINATION "${TEST_INSTALL_DIRECTORY}/$<CONFIG>")

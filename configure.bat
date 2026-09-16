@@ -3,10 +3,12 @@ SETLOCAL EnableDelayedExpansion
 SET "ROOT=%cd%"
 SET "DIRECTORY=%~dp0"
 CALL :CreateForwardingScripts
-CALL :ParseArgs %*
+CALL :ParseArgs %* || EXIT /B 1
 CALL :SetupDependencies || EXIT /B 1
+IF "!VIPER_SKIP_CMAKE!"=="1" EXIT /B 0
 CALL :CheckHashes || EXIT /B 1
-CALL :RunCMake
+CALL :RunCMake || EXIT /B 1
+CALL :CommitHashes
 EXIT /B !ERRORLEVEL!
 ENDLOCAL
 
@@ -24,6 +26,7 @@ EXIT /B 0
 :ParseArgs
 SET "DEPENDENCIES="
 SET "IS_DEPENDENCY="
+SET "CONFIG="
 :ParseArgsLoop
 SET "ARG=%~1"
 IF "!ARG!"=="" (
@@ -47,46 +50,90 @@ IF "!IS_DEPENDENCY!"=="1" (
     )
   ) ELSE IF "!ARG!"=="-DD" (
     SET "IS_DEPENDENCY=1"
+  ) ELSE (
+    SET "CONFIG=!ARG!"
   )
   SHIFT
   GOTO ParseArgsLoop
 )
 :ParseArgsDone
+IF "!CONFIG!"=="" (
+  IF EXIST "CMakeFiles\config.txt" (
+    SET /P CONFIG=<"CMakeFiles\config.txt"
+  ) ELSE (
+    SET "CONFIG=Release"
+  )
+)
+IF /I "!CONFIG!"=="release" (
+  SET "CONFIG=Release"
+) ELSE IF /I "!CONFIG!"=="debug" (
+  SET "CONFIG=Debug"
+) ELSE IF /I "!CONFIG!"=="relwithdebinfo" (
+  SET "CONFIG=RelWithDebInfo"
+) ELSE IF /I "!CONFIG!"=="minsizerel" (
+  SET "CONFIG=MinSizeRel"
+) ELSE (
+  ECHO Error: Invalid configuration "!CONFIG!".
+  EXIT /B 1
+)
 IF "!DEPENDENCIES!"=="" (
   SET "DEPENDENCIES=!ROOT!\Dependencies"
 )
 EXIT /B 0
 
 :SetupDependencies
+FOR %%D IN ("!DEPENDENCIES!") DO (
+  SET "DEPENDENCIES=%%~fD"
+)
+SET "DEPENDENCIES_ATTRIBUTES="
+IF /I NOT "!DEPENDENCIES!"=="!ROOT!\Dependencies" (
+  FOR %%D IN ("!ROOT!\Dependencies") DO (
+    SET "DEPENDENCIES_ATTRIBUTES=%%~aD"
+  )
+  IF DEFINED DEPENDENCIES_ATTRIBUTES (
+    IF "!DEPENDENCIES_ATTRIBUTES:l=!"=="!DEPENDENCIES_ATTRIBUTES!" (
+      ECHO Error: !ROOT!\Dependencies exists and is not a link.
+      EXIT /B 1
+    )
+  )
+)
 IF NOT EXIST "!DEPENDENCIES!" (
   MD "!DEPENDENCIES!" || EXIT /B 1
 )
-PUSHD "!DEPENDENCIES!"
+PUSHD "!DEPENDENCIES!" || EXIT /B 1
 CALL "!DIRECTORY!setup.bat" || (POPD & EXIT /B 1)
 POPD
-IF NOT "!DEPENDENCIES!"=="!ROOT!\Dependencies" (
-  IF EXIST Dependencies (
-    RD /S /Q Dependencies || EXIT /B 1
+IF /I NOT "!DEPENDENCIES!"=="!ROOT!\Dependencies" (
+  IF DEFINED DEPENDENCIES_ATTRIBUTES (
+    RD "!ROOT!\Dependencies" || EXIT /B 1
   )
-  mklink /j Dependencies "!DEPENDENCIES!" > NUL || EXIT /B 1
+  mklink /j "!ROOT!\Dependencies" "!DEPENDENCIES!" > NUL || EXIT /B 1
 )
 EXIT /B 0
 
 :CheckHashes
 SET "RUN_CMAKE="
+SET "HASH_FILES="
+IF NOT EXIST CMakeCache.txt SET "RUN_CMAKE=1"
 IF NOT EXIST CMakeFiles (
   MD CMakeFiles || EXIT /B 1
   SET "RUN_CMAKE=1"
 )
 SET "TEMP_FILE=!ROOT!\temp_%RANDOM%%RANDOM%.txt"
 TYPE "!DIRECTORY!CMakeLists.txt" > "!TEMP_FILE!"
-FOR %%F IN ("!DIRECTORY!Config\*.cmake") DO TYPE "%%F" >> "!TEMP_FILE!"
+FOR %%F IN ("!DIRECTORY!Config\*.cmake") DO (
+  TYPE "%%F" >> "!TEMP_FILE!"
+)
 PUSHD "!DIRECTORY!Config"
 FOR /R %%F IN (*) DO (
   IF "%%~nxF"=="CMakeLists.txt" TYPE "%%F" >> "!TEMP_FILE!"
 )
 POPD
 CALL :CheckFileHash "!TEMP_FILE!" "CMakeFiles\cmake_hash.txt"
+>"!TEMP_FILE!" ECHO !CONFIG!
+CALL :CheckFileHash "!TEMP_FILE!" "CMakeFiles\config_hash.txt"
+>"!TEMP_FILE!" ECHO !DEPENDENCIES!
+CALL :CheckFileHash "!TEMP_FILE!" "CMakeFiles\dependencies_hash.txt"
 DIR /a-d /b /s "!DIRECTORY!Include\*" > "!TEMP_FILE!"
 CALL :CheckFileHash "!TEMP_FILE!" "CMakeFiles\hpp_hash.txt"
 DIR /a-d /b /s "!DIRECTORY!Source\*" > "!TEMP_FILE!"
@@ -105,15 +152,24 @@ IF EXIST "%~2" (
 ) ELSE (
   SET RUN_CMAKE=1
 )
-IF "!RUN_CMAKE!"=="1" (
-  >"%~2" ECHO !CURRENT_HASH!
-)
+SET "HASH_FILES=!HASH_FILES! %~2"
+SET "HASH[%~2]=!CURRENT_HASH!"
 SET CURRENT_HASH=
 SET CACHED_HASH=
 EXIT /B 0
 
 :RunCMake
 IF "!RUN_CMAKE!"=="1" (
-  cmake -S "!DIRECTORY!." -DD="!DEPENDENCIES!" || EXIT /B 1
+  cmake -S "!DIRECTORY!." -DD="!DEPENDENCIES!" -DCMAKE_BUILD_TYPE=!CONFIG! || ^
+    EXIT /B 1
 )
+EXIT /B 0
+
+:CommitHashes
+IF "!RUN_CMAKE!"=="1" (
+  FOR %%F IN (!HASH_FILES!) DO (
+    (ECHO !HASH[%%F]!) >"%%F" || EXIT /B 1
+  )
+)
+(ECHO !CONFIG!) >"CMakeFiles\config.txt" || EXIT /B 1
 EXIT /B 0

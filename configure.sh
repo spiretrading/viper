@@ -6,15 +6,20 @@ ROOT=""
 DEPENDENCIES=""
 CONFIG=""
 RUN_CMAKE=""
+HASH_FILES=()
+HASH_VALUES=()
 
 main() {
   resolve_paths
   create_forwarding_scripts
   parse_args "$@"
   setup_dependencies || return 1
+  if [[ "${VIPER_SKIP_CMAKE:-}" == "1" ]]; then
+    return 0
+  fi
   check_hashes || return 1
-  run_cmake
-  return "$?"
+  run_cmake || return 1
+  commit_hashes
 }
 
 resolve_paths() {
@@ -73,13 +78,21 @@ setup_dependencies() {
   if [[ ! -d "$DEPENDENCIES" ]]; then
     mkdir -p "$DEPENDENCIES" || return 1
   fi
-  pushd "$DEPENDENCIES" > /dev/null
+  DEPENDENCIES="$(cd "$DEPENDENCIES" && pwd -P)" || return 1
+  if [[ -e "$ROOT/Dependencies" ]] &&
+      [[ ! "$ROOT/Dependencies" -ef "$DEPENDENCIES" ]] &&
+      [[ ! -L "$ROOT/Dependencies" ]]; then
+    echo "Error: $ROOT/Dependencies exists and is not a symbolic link."
+    return 1
+  fi
+  pushd "$DEPENDENCIES" > /dev/null || return 1
   "$DIRECTORY/setup.sh" || { popd > /dev/null; return 1; }
   popd > /dev/null
-  if [[ "$DEPENDENCIES" != "$ROOT/Dependencies" ]] &&
-      [[ ! -d Dependencies ]]; then
-    rm -rf Dependencies
-    ln -s "$DEPENDENCIES" Dependencies
+  if [[ ! "$ROOT/Dependencies" -ef "$DEPENDENCIES" ]]; then
+    if [[ -L "$ROOT/Dependencies" ]]; then
+      rm "$ROOT/Dependencies" || return 1
+    fi
+    ln -s "$DEPENDENCIES" "$ROOT/Dependencies" || return 1
   fi
 }
 
@@ -92,12 +105,16 @@ md5hash() {
 }
 
 check_hashes() {
+  if [[ ! -f "CMakeCache.txt" ]]; then
+    RUN_CMAKE=1
+  fi
   if [[ ! -d "CMakeFiles" ]]; then
     mkdir -p CMakeFiles || return 1
     RUN_CMAKE=1
   fi
   check_cmake_hash
   check_file_hash "$CONFIG" "CMakeFiles/config.txt"
+  check_file_hash "$DEPENDENCIES" "CMakeFiles/dependencies.txt"
   check_directory_hash "$DIRECTORY/Include" "CMakeFiles/hpp_hash.txt"
   check_directory_hash "$DIRECTORY/Source" "CMakeFiles/cpp_hash.txt"
 }
@@ -129,9 +146,8 @@ check_file_hash() {
   else
     RUN_CMAKE=1
   fi
-  if [[ "$RUN_CMAKE" == "1" ]]; then
-    echo "$current_hash" > "$hash_file"
-  fi
+  HASH_FILES+=("$hash_file")
+  HASH_VALUES+=("$current_hash")
 }
 
 check_directory_hash() {
@@ -149,6 +165,15 @@ run_cmake() {
   if [[ "$RUN_CMAKE" == "1" ]]; then
     cmake -S "$DIRECTORY" -DCMAKE_BUILD_TYPE="$CONFIG" -DD="$DEPENDENCIES" ||
       return 1
+  fi
+}
+
+commit_hashes() {
+  if [[ "$RUN_CMAKE" == "1" ]]; then
+    local i
+    for ((i = 0; i < ${#HASH_FILES[@]}; ++i)); do
+      printf '%s\n' "${HASH_VALUES[i]}" > "${HASH_FILES[i]}" || return 1
+    done
   fi
 }
 

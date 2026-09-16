@@ -15,12 +15,14 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 if(WIN32)
   set(configure_script
-    cmd /c "CALL ${CMAKE_SOURCE_DIR}/configure.bat -DD=${D}")
+    cmd /c CALL "${CMAKE_SOURCE_DIR}/configure.bat" -DD "${D}"
+    "${CMAKE_BUILD_TYPE}")
 elseif(UNIX)
   set(configure_script "${CMAKE_SOURCE_DIR}/configure.sh" "-DD=${D}"
     "${CMAKE_BUILD_TYPE}")
 endif()
-execute_process(COMMAND ${configure_script}
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" -E env "VIPER_SKIP_CMAKE=1" ${configure_script}
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}" RESULT_VARIABLE configure_result
   OUTPUT_VARIABLE configure_output ERROR_VARIABLE configure_error
   OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE)
@@ -66,3 +68,22 @@ source_group(TREE ${VIPER_INCLUDE_PATH}/Viper PREFIX "Header Files"
 include_directories(${VIPER_INCLUDE_PATH})
 add_custom_target(viper SOURCES ${viper_header_files})
 add_subdirectory(Config/Tests)
+set(clean_outputs $<TARGET_FILE:viper_tester> $<TARGET_OBJECTS:viper_tester>)
+set(clean_tracking_directories)
+get_target_property(test_directory viper_tester BINARY_DIR)
+if(MSVC)
+  set(compile_pdb_directory "${test_directory}/viper_tester.dir/$<CONFIG>")
+  set_target_properties(viper_tester PROPERTIES COMPILE_PDB_NAME "viper_tester"
+    COMPILE_PDB_OUTPUT_DIRECTORY "${compile_pdb_directory}")
+  list(APPEND clean_outputs "$<TARGET_PDB_FILE:viper_tester>"
+    "${compile_pdb_directory}/viper_tester.pdb"
+    "$<TARGET_FILE_DIR:viper_tester>/$<TARGET_FILE_BASE_NAME:viper_tester>.ilk")
+endif()
+if(CMAKE_GENERATOR MATCHES "^Visual Studio ")
+  list(APPEND clean_tracking_directories
+    "${test_directory}/viper_tester.dir/$<CONFIG>")
+endif()
+configure_file(Config/clean.cmake CMakeFiles/clean.cmake.in @ONLY)
+file(
+  GENERATE OUTPUT "${PROJECT_BINARY_DIR}/CMakeFiles/viper_clean_$<CONFIG>.cmake"
+  INPUT "${PROJECT_BINARY_DIR}/CMakeFiles/clean.cmake.in")

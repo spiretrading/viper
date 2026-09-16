@@ -2,7 +2,7 @@
 SETLOCAL EnableDelayedExpansion
 SET "DIRECTORY=%~dp0"
 SET "ROOT=%cd%"
-CALL :ParseArgs %*
+CALL :ParseArgs %* || EXIT /B 1
 IF /I "!CONFIG!"=="clean" (
   CALL :CleanBuild "clean"
   EXIT /B !ERRORLEVEL!
@@ -54,12 +54,21 @@ EXIT /B 0
 :CleanBuild
 SET "CLEAN_ERROR=0"
 IF "%~1"=="reset" (
+  git rev-parse --show-toplevel >NUL 2>NUL
+  IF ERRORLEVEL 1 (
+    cmake -DBUILD_DIRECTORY:PATH="!ROOT!" -P "!DIRECTORY!Config\reset.cmake"
+    EXIT /B !ERRORLEVEL!
+  )
   RD /S /Q Dependencies 2>NUL
   git clean -ffxd || SET "CLEAN_ERROR=1"
 ) ELSE (
-  git clean -ffxd -e "*Dependencies*" || SET "CLEAN_ERROR=1"
-  IF EXIST "Dependencies\cache_files\viper.txt" (
-    DEL "Dependencies\cache_files\viper.txt" || SET "CLEAN_ERROR=1"
+  IF NOT EXIST "!ROOT!\CMakeCache.txt" EXIT /B 0
+  IF NOT EXIST "!ROOT!\CMakeFiles\viper_clean_*.cmake" (
+    ECHO Error: Run configure.bat before cleaning this build.
+    EXIT /B 1
+  )
+  FOR %%F IN ("!ROOT!\CMakeFiles\viper_clean_*.cmake") DO (
+    cmake -P "%%F" || SET "CLEAN_ERROR=1"
   )
 )
 EXIT /B !CLEAN_ERROR!
@@ -85,14 +94,14 @@ IF /I "!CONFIG!"=="release" (
   EXIT /B 1
 )
 IF NOT "!DEPENDENCIES!"=="" (
-  CALL "!DIRECTORY!configure.bat" -DD="!DEPENDENCIES!"
+  CALL "!DIRECTORY!configure.bat" "!CONFIG!" -DD="!DEPENDENCIES!"
 ) ELSE (
-  CALL "!DIRECTORY!configure.bat"
+  CALL "!DIRECTORY!configure.bat" "!CONFIG!"
 )
 EXIT /B !ERRORLEVEL!
 
 :RunBuild
-cmake --build "!ROOT!" --target INSTALL --config "!CONFIG!" --parallel ^
-  || EXIT /B 1
+cmake --build "!ROOT!" --config "!CONFIG!" --parallel || EXIT /B 1
+cmake --install "!ROOT!" --config "!CONFIG!" || EXIT /B 1
 >"CMakeFiles\config.txt" ECHO !CONFIG!
 EXIT /B 0

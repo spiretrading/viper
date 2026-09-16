@@ -23,31 +23,26 @@ ENDLOCAL
 :BuildSQLite
 cl /c /Zi /MDd /DSQLITE_USE_URI=1 sqlite3.c || EXIT /B 1
 lib sqlite3.obj || EXIT /B 1
-COPY sqlite3.lib sqlite3d.lib
-DEL sqlite3.obj
+COPY /Y sqlite3.lib sqlite3d.lib || EXIT /B 1
+DEL sqlite3.obj || EXIT /B 1
 cl /c /O2 /MD /DSQLITE_USE_URI=1 sqlite3.c || EXIT /B 1
 lib sqlite3.obj || EXIT /B 1
 EXIT /B 0
 
 :BuildMariaDB
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./mariadb ^
-  -DCLIENT_PLUGIN_CACHING_SHA2_PASSWORD=STATIC . || EXIT /B 1
-PUSHD libmariadb
-powershell -Command "(Get-Content mariadbclient.vcxproj) -replace " ^
-  "'<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>', " ^
-  "'<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>' -replace " ^
-  "'<RuntimeLibrary>MultiThreaded</RuntimeLibrary>', " ^
-  "'<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>' | " ^
-  "Set-Content mariadbclient.vcxproj" || (POPD & EXIT /B 1)
-powershell -Command "(Get-Content mariadb_obj.vcxproj) -replace " ^
-  "'<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>', " ^
-  "'<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>' -replace " ^
-  "'<RuntimeLibrary>MultiThreaded</RuntimeLibrary>', " ^
-  "'<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>' | " ^
-  "Set-Content mariadb_obj.vcxproj" || (POPD & EXIT /B 1)
-POPD
-cmake --build . --target mariadbclient --config Debug || EXIT /B 1
-cmake --build . --target mariadbclient --config Release || EXIT /B 1
+SETLOCAL
+SET "CMAKE_GENERATOR="
+SET "CMAKE_GENERATOR_PLATFORM="
+SET "CMAKE_GENERATOR_TOOLSET="
+SET "CMAKE_GENERATOR_INSTANCE="
+cmake --fresh -A x64 -DCMAKE_INSTALL_PREFIX=./mariadb ^
+  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
+  "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" ^
+  -DCLIENT_PLUGIN_CACHING_SHA2_PASSWORD=STATIC . || (ENDLOCAL & EXIT /B 1)
+FOR %%C IN (Debug Release) DO (
+  cmake --build . --target mariadbclient --config %%C || (ENDLOCAL & EXIT /B 1)
+)
+ENDLOCAL
 EXIT /B 0
 
 :CheckCache
@@ -107,7 +102,8 @@ FOR /F "tokens=* delims=/" %%A IN ("!URL!") DO (
   SET "ARCHIVE=%%~nxA"
 )
 IF EXIST "!FOLDER!" (
-  EXIT /B 0
+  IF EXIST "!FOLDER!\.viper_build_complete" EXIT /B 0
+  IF EXIST "!FOLDER!\.viper_extract_complete" GOTO BuildDependency
 )
 IF NOT EXIST "!ARCHIVE!" (
   curl -fsL -o "!ARCHIVE!" "!URL!" || EXIT /B 1
@@ -125,37 +121,19 @@ IF /I NOT "!ACTUAL_HASH!"=="!EXPECTED_HASH!" (
   EXIT /B 1
 )
 SET "ACTUAL_HASH="
-MD "!FOLDER!" || EXIT /B 1
-tar -xf "!ARCHIVE!" -C "!FOLDER!"
-IF ERRORLEVEL 1 (
-  RD /S /Q "!FOLDER!" >NUL 2>NUL
-  EXIT /B 1
+IF NOT EXIST "!FOLDER!" (
+  MD "!FOLDER!" || EXIT /B 1
 )
-SET "DIR_COUNT=0"
-SET "FILE_COUNT=0"
-SET "SINGLE_DIR="
-FOR /D %%D IN ("!FOLDER!\*") DO (
-  SET /A DIR_COUNT+=1
-  SET "SINGLE_DIR=%%~nxD"
-)
-FOR %%F IN ("!FOLDER!\*") DO (
-  SET /A FILE_COUNT+=1
-)
-IF "!DIR_COUNT!"=="1" IF "!FILE_COUNT!"=="0" (
-  FOR /F "delims=" %%D IN ('DIR /AD /B "!FOLDER!\!SINGLE_DIR!" 2^>NUL') DO (
-    MOVE "!FOLDER!\!SINGLE_DIR!\%%D" "!FOLDER!" >NUL
-  )
-  FOR /F "delims=" %%F IN ('DIR /A-D /B "!FOLDER!\!SINGLE_DIR!" 2^>NUL') DO (
-    MOVE "!FOLDER!\!SINGLE_DIR!\%%F" "!FOLDER!" >NUL
-  )
-  RD /S /Q "!FOLDER!\!SINGLE_DIR!" 2>NUL
-)
+tar -xf "!ARCHIVE!" --strip-components=1 -C "!FOLDER!" || EXIT /B 1
+TYPE NUL > "!FOLDER!\.viper_extract_complete" || EXIT /B 1
+:BuildDependency
 IF DEFINED BUILD_LABEL (
-  PUSHD "!FOLDER!"
+  PUSHD "!FOLDER!" || EXIT /B 1
   CALL !BUILD_LABEL!
   SET "BUILD_RESULT=!ERRORLEVEL!"
   POPD
   IF NOT "!BUILD_RESULT!"=="0" EXIT /B !BUILD_RESULT!
+  TYPE NUL > "!FOLDER!\.viper_build_complete" || EXIT /B 1
 )
-DEL /F /Q "!ARCHIVE!"
+IF EXIST "!ARCHIVE!" DEL /F /Q "!ARCHIVE!"
 EXIT /B 0

@@ -29,7 +29,7 @@ main() {
     "https://www.sqlite.org/2026/sqlite-amalgamation-3510200.zip" \
     "6e2a845a493026bdbad0618b2b5a0cf48584faab47384480ed9f592d912f23ec" \
     "build_sqlite"
-  add_dependency "openssl-3.6.0" \
+  add_dependency "openssl-3.6.0-build" \
     "https://github.com/openssl/openssl/releases/download/openssl-3.6.0/openssl-3.6.0.tar.gz" \
     "b6a5f44b7eb69e3fa35dbf15524405b44837a481d43d81daddde3ff21fcbb8e9" \
     "build_openssl"
@@ -48,18 +48,12 @@ build_sqlite() {
 build_openssl() {
   local cores
   cores=$(get_core_count)
-  popd > /dev/null
-  mv "openssl-3.6.0" "openssl-3.6.0-build"
-  pushd "openssl-3.6.0-build" > /dev/null
   export LDFLAGS=-ldl
   ./config no-shared no-tests threads -fPIC -ldl \
     --prefix="$ROOT/openssl-3.6.0" || return 1
   make -j "$cores" || return 1
   make install || return 1
   unset LDFLAGS
-  popd > /dev/null
-  rm -rf "openssl-3.6.0-build"
-  pushd "openssl-3.6.0" > /dev/null
 }
 
 build_mariadb() {
@@ -126,58 +120,37 @@ download_and_extract() {
   local expected_hash="$3"
   local build_func="$4"
   local archive="${url##*/}"
-  if [[ -d "$folder" ]]; then
+  if [[ -f "$folder/.viper_build_complete" ]]; then
     return 0
   fi
-  if [[ ! -f "$archive" ]]; then
-    curl -fsSL -o "$archive" "$url" || return 1
+  if [[ ! -f "$folder/.viper_extract_complete" ]]; then
+    if [[ ! -f "$archive" ]]; then
+      curl -fsSL -o "$archive" "$url" || return 1
+    fi
+    local actual_hash
+    actual_hash=$(sha256 "$archive")
+    if [[ "$actual_hash" != "$expected_hash" ]]; then
+      echo "Error: SHA256 mismatch for $archive."
+      echo "  Expected: $expected_hash"
+      echo "  Actual:   $actual_hash"
+      rm -f "$archive"
+      return 1
+    fi
+    mkdir -p "$folder" || return 1
+    if [[ "$archive" == *.zip ]]; then
+      unzip -qo "$archive" || return 1
+    else
+      tar -xf "$archive" --strip-components=1 -C "$folder" || return 1
+    fi
+    touch "$folder/.viper_extract_complete" || return 1
   fi
-  local actual_hash
-  actual_hash=$(sha256 "$archive")
-  if [[ "$actual_hash" != "$expected_hash" ]]; then
-    echo "Error: SHA256 mismatch for $archive."
-    echo "  Expected: $expected_hash"
-    echo "  Actual:   $actual_hash"
-    rm -f "$archive"
-    return 1
-  fi
-  mkdir -p "$folder" || return 1
-  if [[ "$archive" == *.zip ]]; then
-    unzip -q "$archive" -d "$folder" || { rm -rf "$folder"; return 1; }
-  else
-    tar -xf "$archive" -C "$folder" || { rm -rf "$folder"; return 1; }
-  fi
-  flatten_directory "$folder"
   if [[ -n "$build_func" ]]; then
-    pushd "$folder" > /dev/null
+    pushd "$folder" > /dev/null || return 1
     $build_func || { popd > /dev/null; return 1; }
     popd > /dev/null
+    touch "$folder/.viper_build_complete" || return 1
   fi
   rm -f "$archive"
-}
-
-flatten_directory() {
-  local folder="$1"
-  local dir_count=0
-  local file_count=0
-  local single_dir=""
-  for d in "$folder"/*/; do
-    if [[ -d "$d" ]]; then
-      ((++dir_count))
-      single_dir="$d"
-    fi
-  done
-  for f in "$folder"/*; do
-    if [[ -f "$f" ]]; then
-      ((++file_count))
-    fi
-  done
-  if [[ "$dir_count" -eq 1 ]] && [[ "$file_count" -eq 0 ]]; then
-    shopt -s dotglob
-    mv "$single_dir"* "$folder/" 2>/dev/null || true
-    shopt -u dotglob
-    rmdir "$single_dir" 2>/dev/null || true
-  fi
 }
 
 main "$@"
