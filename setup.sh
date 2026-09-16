@@ -29,12 +29,14 @@ main() {
     "https://www.sqlite.org/2026/sqlite-amalgamation-3510200.zip" \
     "6e2a845a493026bdbad0618b2b5a0cf48584faab47384480ed9f592d912f23ec" \
     "build_sqlite"
+  local openssl_url="https://github.com/openssl/openssl/releases/download"
   add_dependency "openssl-3.6.0-build" \
-    "https://github.com/openssl/openssl/releases/download/openssl-3.6.0/openssl-3.6.0.tar.gz" \
+    "$openssl_url/openssl-3.6.0/openssl-3.6.0.tar.gz" \
     "b6a5f44b7eb69e3fa35dbf15524405b44837a481d43d81daddde3ff21fcbb8e9" \
     "build_openssl"
+  local mariadb_url="https://github.com/mariadb-corporation/mariadb-connector-c"
   add_dependency "mariadb-connector-c-3.4.9" \
-    "https://github.com/mariadb-corporation/mariadb-connector-c/archive/refs/tags/v3.4.9.zip" \
+    "$mariadb_url/archive/refs/tags/v3.4.9.zip" \
     "2342f6e58907f7431b5ccafb8b8e744b6b0e64174d72395d2330576b8a535fb6" \
     "build_mariadb"
   install_dependencies || return 1

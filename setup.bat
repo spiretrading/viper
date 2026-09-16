@@ -11,8 +11,9 @@ CALL :AddDependency "sqlite-amalgamation-3510200" ^
   "https://www.sqlite.org/2026/sqlite-amalgamation-3510200.zip" ^
   "6e2a845a493026bdbad0618b2b5a0cf48584faab47384480ed9f592d912f23ec" ^
   ":BuildSQLite"
+SET "MARIADB_URL=https://github.com/mariadb-corporation/mariadb-connector-c"
 CALL :AddDependency "mariadb-connector-c-3.4.9" ^
-  "https://github.com/mariadb-corporation/mariadb-connector-c/archive/refs/tags/v3.4.9.zip" ^
+  "!MARIADB_URL!/archive/refs/tags/v3.4.9.zip" ^
   "2342f6e58907f7431b5ccafb8b8e744b6b0e64174d72395d2330576b8a535fb6" ^
   ":BuildMariaDB"
 CALL :InstallDependencies || EXIT /B 1

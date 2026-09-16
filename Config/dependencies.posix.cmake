@@ -1,9 +1,8 @@
-set(MYSQL_INCLUDE_PATH
-  "${PROJECT_BINARY_DIR}/Dependencies/mariadb-connector-c-3.4.9/include")
-set(MYSQL_LIBRARY_DEBUG_PATH
-  "${PROJECT_BINARY_DIR}/Dependencies/mariadb-connector-c-3.4.9/libmariadb/libmariadbclient.a")
+set(mariadb_path "${PROJECT_BINARY_DIR}/Dependencies/mariadb-connector-c-3.4.9")
+set(MYSQL_INCLUDE_PATH "${mariadb_path}/include")
+set(MYSQL_LIBRARY_DEBUG_PATH "${mariadb_path}/libmariadb/libmariadbclient.a")
 set(MYSQL_LIBRARY_OPTIMIZED_PATH
-  "${PROJECT_BINARY_DIR}/Dependencies/mariadb-connector-c-3.4.9/libmariadb/libmariadbclient.a")
+  "${mariadb_path}/libmariadb/libmariadbclient.a")
 set(OPEN_SSL_INCLUDE_PATH
   "${PROJECT_BINARY_DIR}/Dependencies/openssl-3.6.0/include")
 set(OPEN_SSL_BASE_LIBRARY_DEBUG_PATH
