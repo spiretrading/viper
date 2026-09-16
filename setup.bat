@@ -3,6 +3,10 @@ SETLOCAL EnableDelayedExpansion
 SET "ROOT=%cd%"
 CALL :CheckCache "viper"
 IF ERRORLEVEL 1 EXIT /B 0
+IF EXIST "cache_files\!CACHE_NAME!.txt" (
+  DEL /F /Q "cache_files\!CACHE_NAME!.txt"
+  IF EXIST "cache_files\!CACHE_NAME!.txt" EXIT /B 1
+)
 CALL :SetupVSEnvironment
 CALL :AddDependency "doctest-2.4.12" ^
   "https://github.com/doctest/doctest/archive/refs/tags/v2.4.12.zip" ^
@@ -109,10 +113,14 @@ SET "CACHED_HASH="
 IF EXIST "!FOLDER!\.viper_build_complete" (
   SET /P CACHED_HASH=<"!FOLDER!\.viper_build_complete"
   IF "!CACHED_HASH!"=="!BUILD_HASH!" EXIT /B 0
+  DEL /F /Q "!FOLDER!\.viper_build_complete"
+  IF EXIST "!FOLDER!\.viper_build_complete" EXIT /B 1
 )
 IF EXIST "!FOLDER!\.viper_extract_complete" (
   SET /P CACHED_HASH=<"!FOLDER!\.viper_extract_complete"
   IF "!CACHED_HASH!"=="!EXPECTED_HASH!" GOTO BuildDependency
+  DEL /F /Q "!FOLDER!\.viper_extract_complete"
+  IF EXIST "!FOLDER!\.viper_extract_complete" EXIT /B 1
 )
 IF NOT EXIST "!ARCHIVE!" (
   curl -fsL -o "!ARCHIVE!" "!URL!" || EXIT /B 1
