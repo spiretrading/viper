@@ -3,7 +3,6 @@ set -o errexit
 set -o pipefail
 DIRECTORY=""
 ROOT=""
-CACHE_NAME=""
 SETUP_HASH=""
 DEPENDENCIES=()
 
@@ -21,8 +20,7 @@ get_core_count() {
 
 main() {
   resolve_paths
-  check_cache "viper" || exit 0
-  rm -f "cache_files/$CACHE_NAME.txt" || return 1
+  SETUP_HASH=$(sha256 "$DIRECTORY/setup.sh") || return 1
   add_dependency "doctest-2.4.12" \
     "https://github.com/doctest/doctest/archive/refs/tags/v2.4.12.zip" \
     "7a7afb5f70d0b749d49ddfcb8a454299a8fcd53e9db9c131abe99b456e88a1fe"
@@ -41,7 +39,6 @@ main() {
     "2342f6e58907f7431b5ccafb8b8e744b6b0e64174d72395d2330576b8a535fb6" \
     "build_mariadb"
   install_dependencies || return 1
-  commit
 }
 
 build_sqlite() {
@@ -80,26 +77,6 @@ resolve_paths() {
   done
   DIRECTORY="$(cd -P "$(dirname "$source")" >/dev/null && pwd -P)"
   ROOT="$(pwd -P)"
-}
-
-check_cache() {
-  CACHE_NAME="$1"
-  SETUP_HASH=$(sha256 "$DIRECTORY/setup.sh")
-  if [[ -f "cache_files/$CACHE_NAME.txt" ]]; then
-    local cached_hash
-    cached_hash=$(< "cache_files/$CACHE_NAME.txt")
-    if [[ "$SETUP_HASH" == "$cached_hash" ]]; then
-      return 1
-    fi
-  fi
-  return 0
-}
-
-commit() {
-  if [[ ! -d "cache_files" ]]; then
-    mkdir -p cache_files || return 1
-  fi
-  echo "$SETUP_HASH" > "cache_files/$CACHE_NAME.txt"
 }
 
 add_dependency() {

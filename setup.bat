@@ -1,12 +1,15 @@
 @ECHO OFF
 SETLOCAL EnableDelayedExpansion
-SET "ROOT=%cd%"
-CALL :CheckCache "viper"
-IF ERRORLEVEL 1 EXIT /B 0
-IF EXIST "cache_files\!CACHE_NAME!.txt" (
-  DEL /F /Q "cache_files\!CACHE_NAME!.txt"
-  IF EXIST "cache_files\!CACHE_NAME!.txt" EXIT /B 1
+FOR /F "delims==" %%V IN ('SET DEPENDENCIES[ 2^>NUL') DO (
+  SET "%%V="
 )
+SET "NEXT_DEPENDENCY_INDEX=0"
+SET "SETUP_HASH="
+FOR /F "skip=1" %%H IN ('certutil -hashfile "%~dp0setup.bat" SHA256') DO (
+  IF NOT DEFINED SETUP_HASH SET "SETUP_HASH=%%H"
+)
+IF NOT DEFINED SETUP_HASH EXIT /B 1
+SET "ROOT=%cd%"
 CALL :SetupVSEnvironment
 CALL :AddDependency "doctest-2.4.12" ^
   "https://github.com/doctest/doctest/archive/refs/tags/v2.4.12.zip" ^
@@ -21,8 +24,7 @@ CALL :AddDependency "mariadb-connector-c-3.4.9" ^
   "2342f6e58907f7431b5ccafb8b8e744b6b0e64174d72395d2330576b8a535fb6" ^
   ":BuildMariaDB"
 CALL :InstallDependencies || EXIT /B 1
-CALL :Commit
-EXIT /B !ERRORLEVEL!
+EXIT /B 0
 ENDLOCAL
 
 :BuildSQLite
@@ -50,25 +52,6 @@ FOR %%C IN (Debug Release) DO (
 ENDLOCAL
 EXIT /B 0
 
-:CheckCache
-SET "CACHE_NAME=%~1"
-SET "SETUP_HASH="
-FOR /F "skip=1" %%H IN ('certutil -hashfile "%~dp0setup.bat" SHA256') DO (
-  IF NOT DEFINED SETUP_HASH SET "SETUP_HASH=%%H"
-)
-IF EXIST "cache_files\!CACHE_NAME!.txt" (
-  SET /P CACHED_HASH=<"cache_files\!CACHE_NAME!.txt"
-  IF "!SETUP_HASH!"=="!CACHED_HASH!" EXIT /B 1
-)
-EXIT /B 0
-
-:Commit
-IF NOT EXIST cache_files (
-  MD cache_files || EXIT /B 1
-)
->"cache_files\!CACHE_NAME!.txt" ECHO !SETUP_HASH!
-EXIT /B 0
-
 :SetupVSEnvironment
 SET "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 FOR /F "usebackq delims=" %%i IN (` ^
@@ -82,7 +65,6 @@ FOR /F "usebackq delims=" %%i IN (` ^
 EXIT /B 0
 
 :AddDependency
-IF NOT DEFINED NEXT_DEPENDENCY_INDEX SET "NEXT_DEPENDENCY_INDEX=0"
 SET "DEPENDENCIES[%NEXT_DEPENDENCY_INDEX%].NAME=%~1"
 SET "DEPENDENCIES[%NEXT_DEPENDENCY_INDEX%].URL=%~2"
 SET "DEPENDENCIES[%NEXT_DEPENDENCY_INDEX%].HASH=%~3"
