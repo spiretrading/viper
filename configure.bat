@@ -6,11 +6,24 @@ CALL :CreateForwardingScripts
 CALL :ParseArgs %* || EXIT /B 1
 CALL :SetupDependencies || EXIT /B 1
 IF "!VIPER_SKIP_CMAKE!"=="1" EXIT /B 0
+CALL :GeneratedFiles begin || EXIT /B 1
+CALL :ConfigureBuild
+SET "CONFIGURE_ERROR=!ERRORLEVEL!"
+CALL :GeneratedFiles end || EXIT /B 1
+EXIT /B !CONFIGURE_ERROR!
+ENDLOCAL
+
+:ConfigureBuild
 CALL :CheckHashes || EXIT /B 1
 CALL :RunCMake || EXIT /B 1
 CALL :CommitHashes
 EXIT /B !ERRORLEVEL!
-ENDLOCAL
+
+:GeneratedFiles
+cmake -DBUILD_DIRECTORY:PATH="!ROOT!" ^
+  -DDEPENDENCIES_DIRECTORY:PATH="!DEPENDENCIES!" -DACTION=%1 ^
+  -P "!DIRECTORY!Config\generated_files.cmake"
+EXIT /B !ERRORLEVEL!
 
 :CreateForwardingScripts
 IF NOT EXIST build.bat (
@@ -114,6 +127,7 @@ EXIT /B 0
 :CheckHashes
 SET "RUN_CMAKE="
 SET "HASH_FILES="
+IF NOT EXIST "CMakeFiles\viper_clean_*.cmake" SET "RUN_CMAKE=1"
 IF NOT EXIST CMakeCache.txt (
   SET "RUN_CMAKE=1"
 ) ELSE (

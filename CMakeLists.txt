@@ -65,9 +65,6 @@ endif()
 if(CYGWIN)
   add_compile_definitions(__USE_W32_SOCKETS)
 endif()
-if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
-  add_compile_options($<$<CONFIG:Release>:-pthreads>)
-endif()
 file(GLOB_RECURSE viper_header_files ${VIPER_INCLUDE_PATH}/Viper/*.hpp)
 source_group(TREE ${VIPER_INCLUDE_PATH}/Viper PREFIX "Header Files"
   FILES ${viper_header_files})
@@ -75,7 +72,6 @@ include_directories(${VIPER_INCLUDE_PATH})
 add_custom_target(viper SOURCES ${viper_header_files})
 add_subdirectory(Config/Tests)
 set(clean_outputs $<TARGET_FILE:viper_tester> $<TARGET_OBJECTS:viper_tester>)
-set(clean_tracking_directories)
 get_target_property(test_directory viper_tester BINARY_DIR)
 if(MSVC)
   set(compile_pdb_directory "${test_directory}/viper_tester.dir/$<CONFIG>")
@@ -84,10 +80,6 @@ if(MSVC)
   list(APPEND clean_outputs "$<TARGET_PDB_FILE:viper_tester>"
     "${compile_pdb_directory}/viper_tester.pdb"
     "$<TARGET_FILE_DIR:viper_tester>/$<TARGET_FILE_BASE_NAME:viper_tester>.ilk")
-endif()
-if(CMAKE_GENERATOR MATCHES "^Visual Studio ")
-  list(APPEND clean_tracking_directories
-    "${test_directory}/viper_tester.dir/$<CONFIG>")
 endif()
 configure_file(Config/clean.cmake CMakeFiles/clean.cmake.in @ONLY)
 file(
