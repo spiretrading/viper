@@ -29,6 +29,10 @@ CMakeFiles
 CMakeScripts
 Testing
 Makefile
+build.ninja
+build-*.ninja
+.ninja_deps
+.ninja_log
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json
@@ -366,3 +370,7 @@ ASALocalRun/
 # Web Artifacts
 package-lock.json
 .vscode/
+
+# Generated project outputs
+Config/Tests/viper_tester
+Tests/*/viper_tester

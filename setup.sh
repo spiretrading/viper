@@ -114,7 +114,10 @@ download_and_extract() {
       [[ "$(< "$folder/.viper_extract_complete")" != "$expected_hash" ]]; then
     rm -f "$folder/.viper_extract_complete" || return 1
     if [[ ! -f "$archive" ]]; then
-      curl -fsSL -o "$archive" "$url" || return 1
+      curl -fsSL -o "$archive" "$url" || {
+        rm -f "$archive"
+        return 1
+      }
     fi
     local actual_hash
     actual_hash=$(sha256 "$archive")
