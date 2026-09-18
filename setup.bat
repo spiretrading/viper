@@ -10,6 +10,10 @@ FOR /F "skip=1" %%H IN ('certutil -hashfile "%~dp0setup.bat" SHA256') DO (
 )
 IF NOT DEFINED SETUP_HASH EXIT /B 1
 SET "ROOT=%cd%"
+SET "CACHE_DIRECTORY=!ROOT!\cache_files\viper"
+IF NOT EXIST "!CACHE_DIRECTORY!" (
+  MD "!CACHE_DIRECTORY!" || EXIT /B 1
+)
 CALL :SetupVSEnvironment
 CALL :AddDependency "doctest-2.4.12" ^
   "https://github.com/doctest/doctest/archive/refs/tags/v2.4.12.zip" ^
@@ -83,6 +87,7 @@ GOTO InstallDependenciesLoop
 
 :DownloadAndExtract
 SET "FOLDER=%~1"
+SET "BUILD_MARKER=!CACHE_DIRECTORY!\!FOLDER!.build_complete"
 SET "URL=%~2"
 SET "EXPECTED_HASH=%~3"
 SET "BUILD_HASH=!EXPECTED_HASH! !SETUP_HASH!"
@@ -92,11 +97,13 @@ FOR /F "tokens=* delims=/" %%A IN ("!URL!") DO (
   SET "ARCHIVE=%%~nxA"
 )
 SET "CACHED_HASH="
-IF EXIST "!FOLDER!\.viper_build_complete" (
-  SET /P CACHED_HASH=<"!FOLDER!\.viper_build_complete"
-  IF "!CACHED_HASH!"=="!BUILD_HASH!" EXIT /B 0
-  DEL /F /Q "!FOLDER!\.viper_build_complete"
-  IF EXIST "!FOLDER!\.viper_build_complete" EXIT /B 1
+IF EXIST "!BUILD_MARKER!" (
+  SET /P CACHED_HASH=<"!BUILD_MARKER!"
+  IF EXIST "!FOLDER!\" (
+    IF "!CACHED_HASH!"=="!BUILD_HASH!" EXIT /B 0
+  )
+  DEL /F /Q "!BUILD_MARKER!"
+  IF EXIST "!BUILD_MARKER!" EXIT /B 1
 )
 IF EXIST "!FOLDER!\.viper_extract_complete" (
   SET /P CACHED_HASH=<"!FOLDER!\.viper_extract_complete"
@@ -134,6 +141,6 @@ IF DEFINED BUILD_LABEL (
   POPD
   IF NOT "!BUILD_RESULT!"=="0" EXIT /B !BUILD_RESULT!
 )
-(ECHO !BUILD_HASH!) >"!FOLDER!\.viper_build_complete" || EXIT /B 1
+(ECHO !BUILD_HASH!) >"!BUILD_MARKER!" || EXIT /B 1
 IF EXIST "!ARCHIVE!" DEL /F /Q "!ARCHIVE!"
 EXIT /B 0
