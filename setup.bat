@@ -59,7 +59,7 @@ FOR /F "usebackq delims=" %%i IN (` ^
       -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 ^
       -property installationPath`) DO (
   IF EXIST "%%i\Common7\Tools\vsdevcmd.bat" (
-    CALL "%%i\Common7\Tools\vsdevcmd.bat" -arch=x64 -host_arch=x64
+    CALL "%%i\Common7\Tools\vsdevcmd.bat" -no_logo -arch=x64 -host_arch=x64
   )
 )
 EXIT /B 0
