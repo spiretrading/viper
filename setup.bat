@@ -4,11 +4,6 @@ FOR /F "delims==" %%V IN ('SET DEPENDENCIES[ 2^>NUL') DO (
   SET "%%V="
 )
 SET "NEXT_DEPENDENCY_INDEX=0"
-SET "SETUP_HASH="
-FOR /F "skip=1" %%H IN ('certutil -hashfile "%~dp0setup.bat" SHA256') DO (
-  IF NOT DEFINED SETUP_HASH SET "SETUP_HASH=%%H"
-)
-IF NOT DEFINED SETUP_HASH EXIT /B 1
 SET "ROOT=%cd%"
 SET "CACHE_DIRECTORY=!ROOT!\cache_files\viper"
 IF NOT EXIST "!CACHE_DIRECTORY!" (
@@ -17,15 +12,15 @@ IF NOT EXIST "!CACHE_DIRECTORY!" (
 CALL :SetupVSEnvironment
 CALL :AddDependency "doctest-2.4.12" ^
   "https://github.com/doctest/doctest/archive/refs/tags/v2.4.12.zip" ^
-  "7a7afb5f70d0b749d49ddfcb8a454299a8fcd53e9db9c131abe99b456e88a1fe"
+  "7a7afb5f70d0b749d49ddfcb8a454299a8fcd53e9db9c131abe99b456e88a1fe" 1
 CALL :AddDependency "sqlite-amalgamation-3510200" ^
   "https://www.sqlite.org/2026/sqlite-amalgamation-3510200.zip" ^
-  "6e2a845a493026bdbad0618b2b5a0cf48584faab47384480ed9f592d912f23ec" ^
+  "6e2a845a493026bdbad0618b2b5a0cf48584faab47384480ed9f592d912f23ec" 1 ^
   ":BuildSQLite"
 SET "MARIADB_URL=https://github.com/mariadb-corporation/mariadb-connector-c"
 CALL :AddDependency "mariadb-connector-c-3.4.9" ^
   "!MARIADB_URL!/archive/refs/tags/v3.4.9.zip" ^
-  "2342f6e58907f7431b5ccafb8b8e744b6b0e64174d72395d2330576b8a535fb6" ^
+  "2342f6e58907f7431b5ccafb8b8e744b6b0e64174d72395d2330576b8a535fb6" 1 ^
   ":BuildMariaDB"
 CALL :InstallDependencies || EXIT /B 1
 EXIT /B 0
@@ -72,7 +67,8 @@ EXIT /B 0
 SET "DEPENDENCIES[%NEXT_DEPENDENCY_INDEX%].NAME=%~1"
 SET "DEPENDENCIES[%NEXT_DEPENDENCY_INDEX%].URL=%~2"
 SET "DEPENDENCIES[%NEXT_DEPENDENCY_INDEX%].HASH=%~3"
-SET "DEPENDENCIES[%NEXT_DEPENDENCY_INDEX%].BUILD=%~4"
+SET "DEPENDENCIES[%NEXT_DEPENDENCY_INDEX%].REVISION=%~4"
+SET "DEPENDENCIES[%NEXT_DEPENDENCY_INDEX%].BUILD=%~5"
 SET /A NEXT_DEPENDENCY_INDEX+=1
 EXIT /B 0
 
@@ -81,7 +77,8 @@ SET "I=0"
 :InstallDependenciesLoop
 IF NOT DEFINED DEPENDENCIES[%I%].NAME EXIT /B 0
 CALL :DownloadAndExtract "!DEPENDENCIES[%I%].NAME!" "!DEPENDENCIES[%I%].URL!" ^
-  "!DEPENDENCIES[%I%].HASH!" "!DEPENDENCIES[%I%].BUILD!" || EXIT /B 1
+  "!DEPENDENCIES[%I%].HASH!" "!DEPENDENCIES[%I%].REVISION!" ^
+  "!DEPENDENCIES[%I%].BUILD!" || EXIT /B 1
 SET /A I+=1
 GOTO InstallDependenciesLoop
 
@@ -90,8 +87,8 @@ SET "FOLDER=%~1"
 SET "BUILD_MARKER=!CACHE_DIRECTORY!\!FOLDER!.build_complete"
 SET "URL=%~2"
 SET "EXPECTED_HASH=%~3"
-SET "BUILD_HASH=!EXPECTED_HASH! !SETUP_HASH!"
-SET "BUILD_LABEL=%~4"
+SET "BUILD_HASH=!EXPECTED_HASH! windows-%~4"
+SET "BUILD_LABEL=%~5"
 SET "ACTUAL_HASH="
 FOR /F "tokens=* delims=/" %%A IN ("!URL!") DO (
   SET "ARCHIVE=%%~nxA"

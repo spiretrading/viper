@@ -4,7 +4,6 @@ set -o pipefail
 DIRECTORY=""
 ROOT=""
 CACHE_DIRECTORY=""
-SETUP_HASH=""
 DEPENDENCIES=()
 
 sha256() {
@@ -23,23 +22,22 @@ main() {
   resolve_paths
   CACHE_DIRECTORY="$ROOT/cache_files/viper"
   mkdir -p "$CACHE_DIRECTORY" || return 1
-  SETUP_HASH=$(sha256 "$DIRECTORY/setup.sh") || return 1
   add_dependency "doctest-2.4.12" \
     "https://github.com/doctest/doctest/archive/refs/tags/v2.4.12.zip" \
-    "7a7afb5f70d0b749d49ddfcb8a454299a8fcd53e9db9c131abe99b456e88a1fe"
+    "7a7afb5f70d0b749d49ddfcb8a454299a8fcd53e9db9c131abe99b456e88a1fe" 1
   add_dependency "sqlite-amalgamation-3510200" \
     "https://www.sqlite.org/2026/sqlite-amalgamation-3510200.zip" \
-    "6e2a845a493026bdbad0618b2b5a0cf48584faab47384480ed9f592d912f23ec" \
+    "6e2a845a493026bdbad0618b2b5a0cf48584faab47384480ed9f592d912f23ec" 1 \
     "build_sqlite"
   local openssl_url="https://github.com/openssl/openssl/releases/download"
   add_dependency "openssl-3.6.0-build" \
     "$openssl_url/openssl-3.6.0/openssl-3.6.0.tar.gz" \
-    "b6a5f44b7eb69e3fa35dbf15524405b44837a481d43d81daddde3ff21fcbb8e9" \
+    "b6a5f44b7eb69e3fa35dbf15524405b44837a481d43d81daddde3ff21fcbb8e9" 1 \
     "build_openssl"
   local mariadb_url="https://github.com/mariadb-corporation/mariadb-connector-c"
   add_dependency "mariadb-connector-c-3.4.9" \
     "$mariadb_url/archive/refs/tags/v3.4.9.zip" \
-    "2342f6e58907f7431b5ccafb8b8e744b6b0e64174d72395d2330576b8a535fb6" \
+    "2342f6e58907f7431b5ccafb8b8e744b6b0e64174d72395d2330576b8a535fb6" 1 \
     "build_mariadb"
   install_dependencies || return 1
 }
@@ -86,14 +84,16 @@ add_dependency() {
   local name="$1"
   local url="$2"
   local hash="$3"
-  local build="${4:-}"
-  DEPENDENCIES+=("$name|$url|$hash|$build")
+  local revision="$4"
+  local build="${5:-}"
+  DEPENDENCIES+=("$name|$url|$hash|$revision|$build")
 }
 
 install_dependencies() {
   for dep in "${DEPENDENCIES[@]}"; do
-    IFS='|' read -r name url hash build <<< "$dep"
-    download_and_extract "$name" "$url" "$hash" "$build" || return 1
+    IFS='|' read -r name url hash revision build <<< "$dep"
+    download_and_extract "$name" "$url" "$hash" "$revision" "$build" ||
+      return 1
   done
 }
 
@@ -102,8 +102,8 @@ download_and_extract() {
   local build_marker="$CACHE_DIRECTORY/$folder.build_complete"
   local url="$2"
   local expected_hash="$3"
-  local build_hash="$expected_hash $SETUP_HASH"
-  local build_func="$4"
+  local build_hash="$expected_hash posix-$4"
+  local build_func="$5"
   local archive="${url##*/}"
   if [[ -d "$folder" && -f "$build_marker" ]] &&
       [[ "$(< "$build_marker")" == "$build_hash" ]]; then
