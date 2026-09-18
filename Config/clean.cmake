@@ -16,20 +16,6 @@ function(is_build_output output result)
 endfunction()
 
 set(outputs "@clean_outputs@")
-set(arguments)
-if("@CMAKE_GENERATOR@" MATCHES "^Visual Studio ")
-  set(arguments -- /nologo /p:ExtensionsToDeleteOnClean=__no_files__)
-endif()
-execute_process(COMMAND "@CMAKE_COMMAND@" --build "@PROJECT_BINARY_DIR@"
-  --config "$<CONFIG>" --target clean ${arguments}
-  RESULT_VARIABLE clean_result OUTPUT_VARIABLE clean_output
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-if(NOT clean_output STREQUAL "")
-  message("${clean_output}")
-endif()
-if(NOT clean_result EQUAL 0)
-  message(FATAL_ERROR "Failed to clean $<CONFIG>.")
-endif()
 list(APPEND outputs
   "@TEST_INSTALL_DIRECTORY@/$<CONFIG>/$<TARGET_FILE_NAME:viper_tester>")
 list(REMOVE_DUPLICATES outputs)
